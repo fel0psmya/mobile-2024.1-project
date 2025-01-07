@@ -15,11 +15,19 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.mygamingdatabase.models.gameList
 
 @Composable
 fun SettingsScreen(
     darkThemeState: MutableState<Boolean>
 ){
+    // Clear favorites function
+    val clearFavorites = {
+        gameList.forEach { game ->
+            game.isFavorite.value = false
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -73,7 +81,9 @@ fun SettingsScreen(
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .padding(8.dp)
-                    .clickable {  }
+                    .clickable {
+                        clearFavorites()
+                    }
             )
         }
     }

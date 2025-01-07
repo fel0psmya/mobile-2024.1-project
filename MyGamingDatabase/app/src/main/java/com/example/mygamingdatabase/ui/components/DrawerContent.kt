@@ -1,5 +1,6 @@
 package com.example.mygamingdatabase.ui.components
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -16,11 +17,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 
 @Composable
 fun DrawerContent(navController: NavHostController, onCloseDrawer: () -> Unit) {
+    val context = LocalContext.current
+
     Surface(
         modifier = Modifier
             .fillMaxHeight()
@@ -47,7 +51,9 @@ fun DrawerContent(navController: NavHostController, onCloseDrawer: () -> Unit) {
                 text = "Perfil",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { }
+                    .clickable {
+                        onCloseDrawer()
+                    }
                     .padding(vertical = 8.dp)
             )
 
@@ -80,7 +86,11 @@ fun DrawerContent(navController: NavHostController, onCloseDrawer: () -> Unit) {
                 text = "Sair",
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier
-                    .clickable { /* Logout logic */ }
+                    .clickable {
+                        Toast.makeText(context, "Você saiu. Até mais!", Toast.LENGTH_SHORT).show()
+                        onCloseDrawer()
+                        // onDrawerItemClick()
+                    }
                     .padding(vertical = 8.dp)
             )
 
