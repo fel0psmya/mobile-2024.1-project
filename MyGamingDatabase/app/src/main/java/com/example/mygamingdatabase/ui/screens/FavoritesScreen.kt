@@ -55,7 +55,8 @@ fun FavoritesScreen(navController: NavHostController){
     var expandedImageUrl by remember { mutableStateOf<String?>(null) } // To store expanded image's URL
 
     LazyColumn(
-        modifier = Modifier.padding(16.dp)
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         if (favoriteGames.isEmpty()) {
             item {
@@ -78,7 +79,6 @@ fun FavoritesScreen(navController: NavHostController){
             items(favoriteGames) { game ->
                 Card(
                     modifier = Modifier
-                        .padding(vertical = 8.dp)
                         .clickable {
                             navController.navigate("gameDetails/${game.id}")
                         },
@@ -88,14 +88,12 @@ fun FavoritesScreen(navController: NavHostController){
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
                     ) {
                         Image(
                             painter = rememberAsyncImagePainter(game.imageUrl),
                             contentDescription = game.name,
                             modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .size(130.dp)
+                                .size(150.dp)
                                 .fillMaxHeight()
                                 .align(Alignment.CenterVertically)
                                 .clickable {
@@ -104,10 +102,7 @@ fun FavoritesScreen(navController: NavHostController){
                         )
 
                         // Game details
-                        Column(
-                            modifier = Modifier
-                                .padding(16.dp)
-                        ) {
+                        Column (modifier = Modifier.padding(end = 22.dp, top = 28.dp, bottom = 28.dp)) {
                             // Game name, release date and favorite icon
                             Row(
                                 horizontalArrangement = Arrangement.SpaceBetween
@@ -117,7 +112,8 @@ fun FavoritesScreen(navController: NavHostController){
                                     Text(
                                         text = game.name,
                                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                        color = MaterialTheme.colorScheme.primary
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
 
                                     // Release date
@@ -142,13 +138,15 @@ fun FavoritesScreen(navController: NavHostController){
                                 )
                             }
 
-                            Spacer(modifier = Modifier.height(8.dp))
+                            //Spacer(modifier = Modifier.height(8.dp))
 
                             // Platforms
                             game.platforms?.let {
                                 Text(
                                     text = it.joinToString(", "), // Exibe as plataformas separadas por vírgula
                                     style = MaterialTheme.typography.bodySmall,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.padding(top = 8.dp),
                                 )
                             }
