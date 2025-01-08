@@ -113,11 +113,11 @@ fun MainInfoSection(game: Game) {
         )
 
         // Informações principais
-        Column {
+        Column (modifier = Modifier.padding(end = 24.dp)) {
             Text(
                 text = game.name,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.primary)
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+            )
             Text(
                 text = game.releaseDate,
                 style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),

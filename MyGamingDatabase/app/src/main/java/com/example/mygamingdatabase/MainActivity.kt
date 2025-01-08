@@ -56,7 +56,12 @@ class MainActivity : ComponentActivity() {
                             topBar = {
                                 TopBar(
                                     onThemeToggle = { isDarkTheme.value = !isDarkTheme.value },
-                                    onOpenDrawer = { scope.launch { drawerState.open() } }
+                                    onOpenDrawer = { scope.launch { drawerState.open() } },
+                                    onNavigateToHome = {
+                                        navController.navigate("home") {
+                                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                                        }
+                                    }
                                 )
                             },
                             bottomBar =  { BottomNavBar(navController) }

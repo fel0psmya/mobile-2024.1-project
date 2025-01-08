@@ -70,4 +70,7 @@ dependencies {
 
     // Accompanist WebView dependency
     implementation("com.google.accompanist:accompanist-webview:0.28.0")
+    implementation(libs.androidx.monitor)
+    implementation(libs.androidx.junit.ktx)
+    androidTestImplementation(libs.junit.junit)
 }

@@ -1,6 +1,7 @@
 package com.example.mygamingdatabase.ui.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -19,7 +20,8 @@ import com.example.mygamingdatabase.R
 @Composable
 fun TopBar(
     onThemeToggle: () -> Unit,
-    onOpenDrawer: () -> Unit
+    onOpenDrawer: () -> Unit,
+    onNavigateToHome: () -> Unit
 ) {
     TopAppBar(
         title = {
@@ -29,6 +31,7 @@ fun TopBar(
                 modifier = Modifier
                     .size(40.dp)
                     .padding(end = 8.dp)
+                    .clickable { onNavigateToHome() }
             )
         },
         navigationIcon = {

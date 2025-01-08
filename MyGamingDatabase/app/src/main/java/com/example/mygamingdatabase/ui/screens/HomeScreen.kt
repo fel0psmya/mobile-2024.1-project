@@ -94,13 +94,12 @@ fun HomeScreen(
 
         // LazyColumn to Filtered Games List
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.padding(horizontal = 8.dp)
         ) {
             items(filteredGames) { game ->
                 Card(
                     modifier = Modifier
-                        .padding(vertical = 8.dp)
                         .clickable {
                             navController.navigate("gameDetails/${game.id}")
                         },
@@ -110,14 +109,12 @@ fun HomeScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
                     ) {
                         Image(
                             painter = rememberAsyncImagePainter(game.imageUrl),
                             contentDescription = game.name,
                             modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .size(130.dp)
+                                .size(150.dp)
                                 .fillMaxHeight()
                                 .align(Alignment.CenterVertically)
                                 .clickable {
@@ -126,10 +123,7 @@ fun HomeScreen(
                         )
 
                         // Game details
-                        Column(
-                            modifier = Modifier
-                                .padding(16.dp)
-                        ) {
+                        Column (modifier = Modifier.padding(end = 22.dp, top = 28.dp, bottom = 28.dp)) {
                             // Game name, release date and favorite icon
                             Row(
                                 horizontalArrangement = Arrangement.SpaceBetween
@@ -139,7 +133,8 @@ fun HomeScreen(
                                     Text(
                                         text = game.name,
                                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                        color = MaterialTheme.colorScheme.primary
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
 
                                     // Release date
@@ -171,6 +166,8 @@ fun HomeScreen(
                                 Text(
                                     text = it.joinToString(", "), // Exibe as plataformas separadas por vírgula
                                     style = MaterialTheme.typography.bodySmall,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.padding(top = 8.dp),
                                 )
                             }
