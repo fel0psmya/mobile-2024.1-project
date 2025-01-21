@@ -97,7 +97,7 @@ fun DrawerContent(navController: NavHostController, onCloseDrawer: () -> Unit) {
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
-                text = "Versão 0.0.0.1",
+                text = "Versão 0.1.0",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
