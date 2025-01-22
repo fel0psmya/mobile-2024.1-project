@@ -1,8 +1,10 @@
 package com.example.mygamingdatabase.ui.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -18,7 +20,7 @@ fun BottomNavBar(navController: NavController) {
         // List of items with routes, labels and icons
         val items = listOf(
             Triple("home", "Home", Icons.Default.Home),
-            Triple("favorites", "Favoritos", Icons.Default.Favorite)
+            Triple("favorites", "Minha Lista", Icons.Default.VideoLibrary)
         )
         items.forEach { (route, label, icon) ->
             NavigationBarItem(
@@ -30,13 +32,7 @@ fun BottomNavBar(navController: NavController) {
                 }, // Specific icon for each item
                 label = { Text(label) },
                 selected = false,
-                onClick = { navController.navigate(route) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary, // Usa a cor primária
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant, // Contraste adequado
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                onClick = { navController.navigate(route) }
             )
         }
     }

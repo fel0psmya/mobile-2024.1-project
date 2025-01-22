@@ -3,27 +3,31 @@ package com.example.mygamingdatabase.ui.screens
 import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,8 +35,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,15 +47,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import coil.size.Size
 import com.example.mygamingdatabase.models.Game
 import com.example.mygamingdatabase.models.gameList
-import com.example.mygamingdatabase.ui.components.TopBar
+import com.example.mygamingdatabase.ui.components.MaintenanceDropdownMenu
+import com.example.mygamingdatabase.ui.components.MaintenanceItemDialog
+
 
 @ExperimentalMaterial3Api
 @Composable
@@ -62,6 +73,11 @@ fun HomeScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var expandedImageUrl by remember { mutableStateOf<String?>(null) } // To store expanded image's URL
+
+    var selectedGameId by remember { mutableStateOf<Int?>(null) }
+    var dropdownExpandedByGameId by remember { mutableStateOf<Int?>(null) }
+    var showRemoveFavoriteDialog by remember { mutableStateOf(false) }
+    var gameToRemoveFromFavorites by remember { mutableStateOf<Int?>(null) }
 
     val filteredGames = remember(searchQuery) {
         gameList.filter { it.name.contains(searchQuery, ignoreCase = true) }
@@ -94,7 +110,6 @@ fun HomeScreen(
 
         // LazyColumn to Filtered Games List
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.padding(horizontal = 8.dp)
         ) {
             items(filteredGames) { game ->
@@ -105,6 +120,21 @@ fun HomeScreen(
                         },
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
+                    // Mostrar o diálogo de manutenção do item
+                    if (selectedGameId == game.id) {
+                        MaintenanceItemDialog(
+                            game = game,
+                            onDismiss = { selectedGameId = null },
+                            onSave = { updatedGame ->
+                                game.status = updatedGame.status
+                                game.userScore = updatedGame.userScore
+                                if (!game.isAddedToList.value) {
+                                    game.isAddedToList.value = true
+                                }
+                                selectedGameId = null
+                            }
+                        )
+                    }
 
                     Row(
                         modifier = Modifier
@@ -114,11 +144,12 @@ fun HomeScreen(
                             painter = rememberAsyncImagePainter(game.imageUrl),
                             contentDescription = game.name,
                             modifier = Modifier
-                                .size(150.dp)
-                                .fillMaxHeight()
+                                .size(175.dp)
                                 .align(Alignment.CenterVertically)
+                                .fillMaxHeight()
                                 .clickable {
-                                    expandedImageUrl = game.imageUrl  // Define expanded image URL
+                                    expandedImageUrl =
+                                        game.imageUrl  // Define expanded image URL
                                 }
                         )
 
@@ -126,7 +157,8 @@ fun HomeScreen(
                         Column (modifier = Modifier.padding(end = 22.dp, top = 28.dp, bottom = 28.dp)) {
                             // Game name, release date and favorite icon
                             Row(
-                                horizontalArrangement = Arrangement.SpaceBetween
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
                             ) {
                                 Column (modifier = Modifier.weight(1f)) {
                                     // Game name
@@ -154,7 +186,12 @@ fun HomeScreen(
                                     modifier = Modifier
                                         .size(24.dp)
                                         .clickable {
-                                            game.isFavorite.value = !game.isFavorite.value // Update favorite state
+                                            if (!game.isFavorite.value) {
+                                                game.isFavorite.value = !game.isFavorite.value
+                                            } else {
+                                                gameToRemoveFromFavorites = game.id
+                                                showRemoveFavoriteDialog = true
+                                            }
                                         }
                                 )
                             }
@@ -180,9 +217,116 @@ fun HomeScreen(
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.padding(top = 8.dp)
                             )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Botão "Adicionar à Lista"
+                            Row(
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .height(48.dp)
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp)) // Define as bordas arredondadas
+                                    .border(
+                                        width = 1.dp,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                                    .background(
+                                        if (game.isAddedToList.value) MaterialTheme.colorScheme.primary
+                                        else Color.Transparent // Fundo transparente se não adicionado
+                                    )
+                                    .clickable {
+                                        if (game.isAddedToList.value) {
+                                            dropdownExpandedByGameId = game.id // Alterna o valor do dropdown
+                                        } else {
+                                            selectedGameId = game.id
+                                        }
+                                    },
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                if (!game.isAddedToList.value) {
+                                    Icon(
+                                        imageVector = Icons.Filled.BookmarkBorder,
+                                        contentDescription = "Adicionar",
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Adicionar à Lista",
+                                        color = MaterialTheme.colorScheme.primary,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.align(Alignment.CenterVertically)
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Filled.Bookmark,
+                                        contentDescription = "Adicionado",
+                                        tint = Color.White
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text ="Adicionado",
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.align(Alignment.CenterVertically)
+                                    )
+                                }
+                            }
+
+                            if (game.isAddedToList.value && dropdownExpandedByGameId == game.id) {
+                                Box(modifier = Modifier.padding(start = 8.dp)) {
+                                    MaintenanceDropdownMenu(
+                                        game = game,
+                                        expanded = if (dropdownExpandedByGameId == game.id) { true } else { false },
+                                        onDismissRequest = { dropdownExpandedByGameId = null },
+                                        onEdit = {
+                                            dropdownExpandedByGameId = null
+                                            selectedGameId = game.id
+                                        },
+                                        onRemove = {
+                                            dropdownExpandedByGameId = null
+                                            game.isAddedToList.value = false
+                                        }
+                                    )
+                                }
+                            }
+
+                            if(showRemoveFavoriteDialog && gameToRemoveFromFavorites == game.id) {
+                                AlertDialog(
+                                    onDismissRequest = { showRemoveFavoriteDialog = false },
+                                    title = {
+                                        Text(text = "Remover jogo dos favoritos")
+                                    },
+                                    text = {
+                                        Text("Você tem certeza que deseja remover '${game.name}' dos seus favoritos?")
+                                    },
+                                    confirmButton = {
+                                        TextButton(
+                                            onClick = {
+                                                showRemoveFavoriteDialog = false
+                                                game.isFavorite.value = !game.isFavorite.value
+                                            }
+                                        ) {
+                                            Text("Confirmar")
+                                        }
+                                    },
+                                    dismissButton = {
+                                        TextButton(
+                                            onClick = {
+                                                showRemoveFavoriteDialog = false
+                                                gameToRemoveFromFavorites = null
+                                            }) {
+                                            Text("Cancelar")
+                                        }
+                                    }
+                                )
+                            }
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
