@@ -19,7 +19,6 @@ import com.example.mygamingdatabase.R
 @ExperimentalMaterial3Api
 @Composable
 fun TopBar(
-    onThemeToggle: () -> Unit,
     onOpenDrawer: () -> Unit,
     onNavigateToHome: () -> Unit
 ) {

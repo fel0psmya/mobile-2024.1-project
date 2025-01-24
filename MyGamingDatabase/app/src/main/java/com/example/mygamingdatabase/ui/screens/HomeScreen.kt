@@ -47,17 +47,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
-import coil.size.Size
+import com.example.app.ui.components.LoadingIndicator
 import com.example.mygamingdatabase.models.Game
 import com.example.mygamingdatabase.models.gameList
 import com.example.mygamingdatabase.ui.components.MaintenanceDropdownMenu
@@ -93,7 +90,6 @@ fun HomeScreen(
             label = { Text("Pesquisar") },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding()
         )
 
         // LazyRow to Recent Searches
@@ -109,16 +105,15 @@ fun HomeScreen(
         }
 
         // LazyColumn to Filtered Games List
-        LazyColumn(
-            modifier = Modifier.padding(horizontal = 8.dp)
-        ) {
+        LazyColumn {
             items(filteredGames) { game ->
                 Card(
                     modifier = Modifier
                         .clickable {
                             navController.navigate("gameDetails/${game.id}")
                         },
-                    elevation = CardDefaults.cardElevation(4.dp)
+                    elevation = CardDefaults.cardElevation(2.dp),
+                    shape = RectangleShape
                 ) {
                     // Mostrar o diálogo de manutenção do item
                     if (selectedGameId == game.id) {
@@ -144,7 +139,7 @@ fun HomeScreen(
                             painter = rememberAsyncImagePainter(game.imageUrl),
                             contentDescription = game.name,
                             modifier = Modifier
-                                .size(175.dp)
+                                .size(200.dp)
                                 .align(Alignment.CenterVertically)
                                 .fillMaxHeight()
                                 .clickable {
@@ -154,7 +149,7 @@ fun HomeScreen(
                         )
 
                         // Game details
-                        Column (modifier = Modifier.padding(end = 22.dp, top = 28.dp, bottom = 28.dp)) {
+                        Column (modifier = Modifier.padding(end = 22.dp, top = 24.dp, bottom = 24.dp)) {
                             // Game name, release date and favorite icon
                             Row(
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -218,12 +213,11 @@ fun HomeScreen(
                                 modifier = Modifier.padding(top = 8.dp)
                             )
 
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
                             // Botão "Adicionar à Lista"
                             Row(
                                 modifier = Modifier
-                                    .padding(8.dp)
                                     .height(48.dp)
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(8.dp)) // Define as bordas arredondadas
@@ -246,33 +240,18 @@ fun HomeScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center
                             ) {
-                                if (!game.isAddedToList.value) {
-                                    Icon(
-                                        imageVector = Icons.Filled.BookmarkBorder,
-                                        contentDescription = "Adicionar",
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = "Adicionar à Lista",
-                                        color = MaterialTheme.colorScheme.primary,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        modifier = Modifier.align(Alignment.CenterVertically)
-                                    )
-                                } else {
-                                    Icon(
-                                        imageVector = Icons.Filled.Bookmark,
-                                        contentDescription = "Adicionado",
-                                        tint = Color.White
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text ="Adicionado",
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        modifier = Modifier.align(Alignment.CenterVertically)
-                                    )
-                                }
+                                Icon(
+                                    imageVector = if(!game.isAddedToList.value) Icons.Filled.BookmarkBorder else Icons.Filled.Bookmark,
+                                    contentDescription = if(!game.isAddedToList.value) "Adicionar" else "Adicionado",
+                                    tint = if (!game.isAddedToList.value) MaterialTheme.colorScheme.primary else Color.White
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = if(!game.isAddedToList.value) "Adicionar à Lista" else "Adicionado",
+                                    color = if (!game.isAddedToList.value) MaterialTheme.colorScheme.primary else Color.White,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.align(Alignment.CenterVertically)
+                                )
                             }
 
                             if (game.isAddedToList.value && dropdownExpandedByGameId == game.id) {

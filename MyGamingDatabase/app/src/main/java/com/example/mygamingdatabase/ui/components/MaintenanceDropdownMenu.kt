@@ -1,6 +1,9 @@
 package com.example.mygamingdatabase.ui.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,14 +30,37 @@ fun MaintenanceDropdownMenu(
                 onDismissRequest() // Fecha o menu
                 onEdit() // Ação de editar
             },
-            text = { Text("Editar") }
+            text = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit, // Ícone de edição
+                        contentDescription = "Editar"
+                    )
+                    Spacer(modifier = Modifier.width(8.dp)) // Espaçamento entre o ícone e o texto
+                    Text("Editar")
+                }
+            }
         )
         DropdownMenuItem(
             onClick = {
                 // onDismissRequest() // Fecha o menu
                 showRemoveDialog = true // Exibe o dialog de confirmação
             },
-            text = { Text("Remover") }
+            text = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete, // Ícone de edição
+                        contentDescription = "Remover",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.width(8.dp)) // Espaçamento entre o ícone e o texto
+                    Text("Remover", color = MaterialTheme.colorScheme.error)
+                }
+            }
         )
     }
 

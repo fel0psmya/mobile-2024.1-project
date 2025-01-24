@@ -4,26 +4,43 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Help
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
 fun DrawerContent(navController: NavHostController, onCloseDrawer: () -> Unit) {
     val context = LocalContext.current
+    val currentDestination = navController.currentBackStackEntryAsState().value?.destination?.route
 
     Surface(
         modifier = Modifier
@@ -39,69 +56,130 @@ fun DrawerContent(navController: NavHostController, onCloseDrawer: () -> Unit) {
                 .padding(16.dp)
         ) {
             Text(
-                text = "Menu",
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(bottom = 16.dp)
+                text = "MY GAMING DATABASE",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            Divider()
-            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(modifier = Modifier.align(Alignment.CenterHorizontally))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            Text(
-                text = "Perfil",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        onCloseDrawer()
-                    }
-                    .padding(vertical = 8.dp)
+            DrawerMenuItem(
+                label = "Perfil",
+                icon = Icons.Default.Person,
+                route = "profile",
+                currentRoute = currentDestination,
+                onClick = {
+                    onCloseDrawer()
+                }
             )
 
-            // Settings
-            Text(
-                text = "Configurações",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        navController.navigate("settings")
-                        onCloseDrawer()
-                    }
-                    .padding(vertical = 8.dp)
+            HorizontalDivider(modifier = Modifier.width(330.dp).align(Alignment.CenterHorizontally).padding(vertical = 12.dp))
+
+            DrawerMenuItem(
+                label = "Página Inicial",
+                icon = Icons.Default.Home,
+                route = "home",
+                currentRoute = currentDestination,
+                onClick = {
+                    navController.navigate("home")
+                    onCloseDrawer()
+                }
             )
 
-            // Help
-            Text(
-                text = "Ajuda e Perguntas Frequentes",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        navController.navigate("help")
-                        onCloseDrawer()
-                    }
-                    .padding(vertical = 8.dp)
+            DrawerMenuItem(
+                label = "Minha Lista",
+                icon = Icons.Default.VideoLibrary,
+                route = "list",
+                currentRoute = currentDestination,
+                onClick = {
+                    navController.navigate("list")
+                    onCloseDrawer()
+                }
             )
 
-            // Logout
-            Text(
-                text = "Sair",
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier
-                    .clickable {
-                        Toast.makeText(context, "Você saiu. Até mais!", Toast.LENGTH_SHORT).show()
-                        onCloseDrawer()
-                        // onDrawerItemClick()
-                    }
-                    .padding(vertical = 8.dp)
+            HorizontalDivider(modifier = Modifier.width(330.dp).align(Alignment.CenterHorizontally).padding(vertical = 12.dp))
+
+            DrawerMenuItem(
+                label = "Ajuda e Perguntas Frequentes",
+                icon = Icons.Default.Help,
+                route = "help",
+                currentRoute = currentDestination,
+                onClick = {
+                    navController.navigate("help")
+                    onCloseDrawer()
+                }
+            )
+
+            DrawerMenuItem(
+                label = "Configurações",
+                icon = Icons.Default.Settings,
+                route = "settings",
+                currentRoute = currentDestination,
+                onClick = {
+                    navController.navigate("settings")
+                    onCloseDrawer()
+                }
+            )
+
+            HorizontalDivider(modifier = Modifier.width(330.dp).align(Alignment.CenterHorizontally).padding(vertical = 12.dp))
+
+            DrawerMenuItem(
+                label = "Sair",
+                icon = Icons.Default.Logout,
+                route = "logout",
+                currentRoute = currentDestination,
+                onClick = {
+                    /* navController.navigate("login") */
+                    Toast.makeText(context, "Você saiu. Até mais!", Toast.LENGTH_SHORT).show()
+                    onCloseDrawer()
+                }
             )
 
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
-                text = "Versão 0.1.0",
+                text = "Versão 0.2.0",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
             )
         }
+    }
+}
+
+@Composable
+fun DrawerMenuItem(
+    label: String,
+    icon: ImageVector,
+    route: String,
+    currentRoute: String?,
+    onClick: () -> Unit
+) {
+    val isSelected = currentRoute == route // Verifica se a rota atual é a do item
+    val textColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+    val iconColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            tint = iconColor,
+            modifier = Modifier.size(28.dp)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = textColor
+        )
     }
 }

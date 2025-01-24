@@ -1,12 +1,6 @@
 package com.example.mygamingdatabase.ui.screens
 
-import android.content.Intent
-import android.net.Uri
 import android.util.Log
-import android.view.View
-import android.webkit.WebChromeClient
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,12 +12,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -33,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import com.example.app.ui.components.LoadingIndicator
 import com.example.mygamingdatabase.models.Game
 import com.example.mygamingdatabase.models.gameList
 import com.example.mygamingdatabase.models.statusDescriptions
@@ -55,6 +49,7 @@ import com.example.mygamingdatabase.ui.components.MaintenanceDropdownMenu
 import com.example.mygamingdatabase.ui.components.MaintenanceItemDialog
 import com.google.accompanist.web.rememberWebViewState
 import com.google.accompanist.web.WebView
+import kotlinx.coroutines.delay
 
 @Composable
 fun YouTubePlayer(videoUrl: String, modifier: Modifier = Modifier) {
@@ -292,33 +287,18 @@ fun ActionButtonsSection(game: Game) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        if (!game.isAddedToList.value) {
-            Icon(
-                imageVector = Icons.Filled.BookmarkBorder,
-                contentDescription = "Adicionar",
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Adicionar à Lista",
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.align(Alignment.CenterVertically)
-            )
-        } else {
-            Icon(
-                imageVector = Icons.Filled.Bookmark,
-                contentDescription = "Adicionado",
-                tint = Color.White
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text ="${game.userScore} | ${statusDescriptions[game.status]}",
-                color = Color.White,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.align(Alignment.CenterVertically)
-            )
-        }
+        Icon(
+            imageVector = if (!game.isAddedToList.value) Icons.Filled.BookmarkBorder else Icons.Filled.Bookmark,
+            contentDescription = if (!game.isAddedToList.value) "Adicionar" else "Adicionado",
+            tint = if (!game.isAddedToList.value) MaterialTheme.colorScheme.primary else Color.White
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = if (!game.isAddedToList.value) "Adicionar à Lista" else "${game.userScore} | ${statusDescriptions[game.status]}",
+            color = if (!game.isAddedToList.value) MaterialTheme.colorScheme.primary else Color.White,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.align(Alignment.CenterVertically)
+        )
     }
 
     if (game.isAddedToList.value && dropdownExpandedByGameId == game.id) {
@@ -374,87 +354,98 @@ fun ActionButtonsSection(game: Game) {
 @ExperimentalMaterial3Api
 @Composable
 fun GameDetailsScreen (gameId : String) {
-
     val game = gameList.find { it.id.toString() == gameId } // Using the updated list
+    var isLoading by remember { mutableStateOf(true) }
 
-    game?.let {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()) // Permite a rolagem vertical
-        ) {
-            // Seção 1: Imagem, título, ano, plataformas
-            MainInfoSection(game)
+    // Simula o carregamento dos dados. Usar um ViewModel ou outra lógica de carregamento posteriormente.
+    LaunchedEffect(Unit) {
+        delay(1000) // Simulando um tempo de carregamento (2 segundos e meio)
+        isLoading = false
+    }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Seção 2: Botão de Favorito e Botão de Adicionar à Lista
-            ActionButtonsSection(game)
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Seção 3: Trailer
-            game.trailerUrl?.let {
-                YouTubePlayer(
-                    videoUrl = it,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp) // Tamanho do player
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Seção 4: Screenshots
-            Card(
+    if(isLoading) {
+        LoadingIndicator(isLoading)
+    } else {
+        game?.let {
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                elevation = CardDefaults.cardElevation(4.dp),
-                shape = RectangleShape
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()) // Permite a rolagem vertical
             ) {
-                SlideShowSection(screenshots = game.screenshots)
-            }
+                // Seção 1: Imagem, título, ano, plataformas
+                MainInfoSection(game)
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            // Seção 5: Descrição
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                elevation = CardDefaults.cardElevation(4.dp)) {
+                // Seção 2: Botão de Favorito e Botão de Adicionar à Lista
+                ActionButtonsSection(game)
 
-                Column (
-                    modifier = Modifier
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Descrição",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.primary,
-                    )
+                Spacer(modifier = Modifier.height(24.dp))
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = game.description,
-                        style = MaterialTheme.typography.bodyMedium
+                // Seção 3: Trailer
+                game.trailerUrl?.let {
+                    YouTubePlayer(
+                        videoUrl = it,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp) // Tamanho do player
                     )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Seção 4: Screenshots
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                    elevation = CardDefaults.cardElevation(4.dp),
+                    shape = RectangleShape
+                ) {
+                    SlideShowSection(screenshots = game.screenshots)
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Seção 5: Descrição
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
+
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = "Descrição",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = game.description,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        } ?: run {
+            // Shows an error message if the event is not found
+            Text(
+                text = "Evento não encontrado",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                style = MaterialTheme.typography.bodyLarge
+            )
         }
-    } ?: run {
-        // Shows an error message if the event is not found
-        Text(
-            text = "Evento não encontrado",
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            style = MaterialTheme.typography.bodyLarge
-        )
     }
 }
