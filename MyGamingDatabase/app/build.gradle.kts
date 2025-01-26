@@ -70,8 +70,21 @@ dependencies {
 
     // Accompanist WebView dependency
     implementation("com.google.accompanist:accompanist-webview:0.28.0")
+
+    // Jetpack DataStore
+    implementation ("androidx.datastore:datastore-preferences:1.0.0")
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+
+    // Animations
+    implementation ("androidx.compose.animation:animation:1.5.4")
+
+    // Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+
+    // Test
     implementation(libs.androidx.monitor)
     implementation(libs.androidx.junit.ktx)
     implementation(libs.androidx.media3.common.ktx)
     androidTestImplementation(libs.junit.junit)
+    debugImplementation ("androidx.compose.ui:ui-tooling:1.5.4")
 }

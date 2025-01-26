@@ -1,4 +1,4 @@
-package com.example.mygamingdatabase.ui.components
+package com.example.mygamingdatabase
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -10,7 +10,6 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import com.example.mygamingdatabase.MainActivity
 import com.example.mygamingdatabase.models.Game
 import com.example.mygamingdatabase.models.gameList
 

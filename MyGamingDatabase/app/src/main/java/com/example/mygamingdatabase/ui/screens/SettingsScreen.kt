@@ -21,15 +21,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.mygamingdatabase.models.GameViewModel
 import com.example.mygamingdatabase.models.gameList
 
 @Composable
 fun SettingsScreen(
-    darkThemeState: MutableState<Boolean>
+    isDarkTheme: Boolean, onThemeChange: (Boolean) -> Unit
 ){
     var showClearFavoritesDialog by remember { mutableStateOf(false) }
     var showClearUserGameListDialog by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
 
     // Clear favorites function
     val clearFavorites = {
@@ -70,10 +74,8 @@ fun SettingsScreen(
             )
 
             Switch(
-                checked = darkThemeState.value,
-                onCheckedChange = {
-                    darkThemeState.value = it
-                }
+                checked = isDarkTheme,
+                onCheckedChange = { isChecked -> onThemeChange(isChecked) }
             )
         }
 

@@ -5,6 +5,7 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
@@ -12,6 +13,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -22,6 +25,8 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.mygamingdatabase.models.GameViewModel
+import com.example.mygamingdatabase.models.GameViewModelFactory
 import com.example.mygamingdatabase.ui.theme.MyGamingDatabaseTheme
 import com.example.mygamingdatabase.ui.components.BottomNavBar
 import com.example.mygamingdatabase.ui.components.DrawerContent
@@ -35,6 +40,10 @@ import com.example.mygamingdatabase.ui.screens.GameDetailsScreen
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    private val viewModel: GameViewModel by viewModels {
+        GameViewModelFactory(this)
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,10 +68,9 @@ class MainActivity : ComponentActivity() {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
             val scope = rememberCoroutineScope()
 
-            val isSystemInDarkTheme = isSystemInDarkTheme()
-            val isDarkTheme = remember { mutableStateOf(isSystemInDarkTheme) }
+            val isDarkTheme by viewModel.isDarkTheme.collectAsState()
 
-            MyGamingDatabaseTheme (darkTheme = isDarkTheme.value){
+            MyGamingDatabaseTheme (darkTheme = isDarkTheme){
                 ModalNavigationDrawer(
                     drawerState = drawerState,
                     gesturesEnabled = true,
@@ -106,7 +114,12 @@ class MainActivity : ComponentActivity() {
                                 }
                                 composable("help") { HelpScreen() }
                                 composable("settings") {
-                                    SettingsScreen(isDarkTheme)
+                                    SettingsScreen(
+                                        isDarkTheme = isDarkTheme,
+                                        onThemeChange = {
+                                            viewModel.toggleTheme(this@MainActivity)
+                                        }
+                                    )
                                 }
                             }
                         }
