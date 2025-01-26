@@ -31,10 +31,13 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -59,7 +62,13 @@ import com.example.mygamingdatabase.models.Game
 import com.example.mygamingdatabase.models.gameList
 import com.example.mygamingdatabase.ui.components.MaintenanceDropdownMenu
 import com.example.mygamingdatabase.ui.components.MaintenanceItemDialog
-
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.window.DialogProperties
+import com.example.mygamingdatabase.models.GameStatus
+import kotlinx.coroutines.launch
 
 @ExperimentalMaterial3Api
 @Composable
@@ -79,237 +88,362 @@ fun HomeScreen(
     val filteredGames = remember(searchQuery) {
         gameList.filter { it.name.contains(searchQuery, ignoreCase = true) }
     }
-
     val recentSearches = remember { mutableListOf<Game>() }
 
-    Column {
-        // Search Bar
-        TextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            label = { Text("Pesquisar") },
-            modifier = Modifier
-                .fillMaxWidth()
-        )
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
-        // LazyRow to Recent Searches
-        LazyRow(
-            modifier = Modifier.padding(vertical = 8.dp, horizontal = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(recentSearches) { game ->
-                Button(onClick = { onGameSelected(game) }) {
-                    Text(game.name)
+    // Controle do lembrete para notificações
+    var showReminderDialog by remember { mutableStateOf(false) }
+    var selectedGameIdForReminder by remember { mutableStateOf<Int?>(null) } // Identifica qual jogo requer o lembrete
+    var doNotAskAgain by remember { mutableStateOf(false) }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Column (modifier = Modifier.padding(paddingValues)) {
+            // Search Bar
+            TextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                label = { Text("Pesquisar") },
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
+
+            // LazyRow to Recent Searches
+            LazyRow(
+                modifier = Modifier.padding(vertical = 8.dp, horizontal = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(recentSearches) { game ->
+                    Button(onClick = { onGameSelected(game) }) {
+                        Text(game.name)
+                    }
                 }
             }
-        }
 
-        // LazyColumn to Filtered Games List
-        LazyColumn {
-            items(filteredGames) { game ->
-                Card(
-                    modifier = Modifier
-                        .clickable {
-                            navController.navigate("gameDetails/${game.id}")
-                        },
-                    elevation = CardDefaults.cardElevation(2.dp),
-                    shape = RectangleShape
-                ) {
-                    // Mostrar o diálogo de manutenção do item
-                    if (selectedGameId == game.id) {
-                        MaintenanceItemDialog(
-                            game = game,
-                            onDismiss = { selectedGameId = null },
-                            onSave = { updatedGame ->
-                                game.status = updatedGame.status
-                                game.userScore = updatedGame.userScore
-                                if (!game.isAddedToList.value) {
-                                    game.isAddedToList.value = true
-                                }
-                                selectedGameId = null
-                            }
-                        )
-                    }
-
-                    Row(
+            // LazyColumn to Filtered Games List
+            LazyColumn {
+                items(filteredGames) { game ->
+                    Card(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .clickable {
+                                navController.navigate("gameDetails/${game.id}")
+                            },
+                        elevation = CardDefaults.cardElevation(2.dp),
+                        shape = RectangleShape
                     ) {
-                        Image(
-                            painter = rememberAsyncImagePainter(game.imageUrl),
-                            contentDescription = game.name,
-                            modifier = Modifier
-                                .size(200.dp)
-                                .align(Alignment.CenterVertically)
-                                .fillMaxHeight()
-                                .clickable {
-                                    expandedImageUrl =
-                                        game.imageUrl  // Define expanded image URL
-                                }
-                        )
+                        // Mostrar o diálogo de manutenção do item
+                        if (selectedGameId == game.id) {
+                            MaintenanceItemDialog(
+                                game = game,
+                                onDismiss = { selectedGameId = null },
+                                onSave = { updatedGame ->
+                                    game.status = updatedGame.status
+                                    game.userScore = updatedGame.userScore
+                                    if (!game.isAddedToList.value) {
+                                        game.isAddedToList.value = true
+                                        coroutineScope.launch {
+                                            val result = snackbarHostState.showSnackbar(
+                                                message = "${game.name} foi adicionado à sua lista!",
+                                                duration = SnackbarDuration.Short,
+                                                withDismissAction = true
+                                            )
 
-                        // Game details
-                        Column (modifier = Modifier.padding(end = 22.dp, top = 24.dp, bottom = 24.dp)) {
-                            // Game name, release date and favorite icon
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Column (modifier = Modifier.weight(1f)) {
-                                    // Game name
-                                    Text(
-                                        text = game.name,
-                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-
-                                    // Release date
-                                    Text(
-                                        text = game.releaseDate,
-                                        style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                // Favorite icon
-                                Icon(
-                                    imageVector = if (game.isFavorite.value) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                    contentDescription = "Favorite",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .clickable {
-                                            if (!game.isFavorite.value) {
-                                                game.isFavorite.value = !game.isFavorite.value
-                                            } else {
-                                                gameToRemoveFromFavorites = game.id
-                                                showRemoveFavoriteDialog = true
-                                            }
+                                            /*
+                                            if (result == SnackbarResult.ActionPerformed) {
+                                                navController.navigate("lista/minha_lista")
+                                            } */
                                         }
-                                )
-                            }
 
-                            //Spacer(modifier = Modifier.height(8.dp))
-
-                            // Platforms
-                            game.platforms?.let {
-                                Text(
-                                    text = it.joinToString(", "), // Exibe as plataformas separadas por vírgula
-                                    style = MaterialTheme.typography.bodySmall,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.padding(top = 8.dp),
-                                )
-                            }
-
-                            // Game description
-                            Text(
-                                text = game.description,
-                                style = MaterialTheme.typography.bodySmall,
-                                maxLines = 4,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.padding(top = 8.dp)
-                            )
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            // Botão "Adicionar à Lista"
-                            Row(
-                                modifier = Modifier
-                                    .height(48.dp)
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp)) // Define as bordas arredondadas
-                                    .border(
-                                        width = 1.dp,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        shape = RoundedCornerShape(8.dp)
-                                    )
-                                    .background(
-                                        if (game.isAddedToList.value) MaterialTheme.colorScheme.primary
-                                        else Color.Transparent // Fundo transparente se não adicionado
-                                    )
-                                    .clickable {
-                                        if (game.isAddedToList.value) {
-                                            dropdownExpandedByGameId = game.id // Alterna o valor do dropdown
-                                        } else {
-                                            selectedGameId = game.id
-                                        }
-                                    },
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Icon(
-                                    imageVector = if(!game.isAddedToList.value) Icons.Filled.BookmarkBorder else Icons.Filled.Bookmark,
-                                    contentDescription = if(!game.isAddedToList.value) "Adicionar" else "Adicionado",
-                                    tint = if (!game.isAddedToList.value) MaterialTheme.colorScheme.primary else Color.White
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = if(!game.isAddedToList.value) "Adicionar à Lista" else "Adicionado",
-                                    color = if (!game.isAddedToList.value) MaterialTheme.colorScheme.primary else Color.White,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.align(Alignment.CenterVertically)
-                                )
-                            }
-
-                            if (game.isAddedToList.value && dropdownExpandedByGameId == game.id) {
-                                Box(modifier = Modifier.padding(start = 8.dp)) {
-                                    MaintenanceDropdownMenu(
-                                        game = game,
-                                        expanded = if (dropdownExpandedByGameId == game.id) { true } else { false },
-                                        onDismissRequest = { dropdownExpandedByGameId = null },
-                                        onEdit = {
-                                            dropdownExpandedByGameId = null
-                                            selectedGameId = game.id
-                                        },
-                                        onRemove = {
-                                            dropdownExpandedByGameId = null
-                                            game.isAddedToList.value = false
-                                        }
-                                    )
-                                }
-                            }
-
-                            if(showRemoveFavoriteDialog && gameToRemoveFromFavorites == game.id) {
-                                AlertDialog(
-                                    onDismissRequest = { showRemoveFavoriteDialog = false },
-                                    title = {
-                                        Text(text = "Remover jogo dos favoritos")
-                                    },
-                                    text = {
-                                        Text("Você tem certeza que deseja remover '${game.name}' dos seus favoritos?")
-                                    },
-                                    confirmButton = {
-                                        TextButton(
-                                            onClick = {
-                                                showRemoveFavoriteDialog = false
-                                                game.isFavorite.value = !game.isFavorite.value
-                                            }
-                                        ) {
-                                            Text("Confirmar")
-                                        }
-                                    },
-                                    dismissButton = {
-                                        TextButton(
-                                            onClick = {
-                                                showRemoveFavoriteDialog = false
-                                                gameToRemoveFromFavorites = null
-                                            }) {
-                                            Text("Cancelar")
+                                        if (game.status == GameStatus.PLANNING_TO_PLAY || game.status == GameStatus.PLAYING) {
+                                            selectedGameIdForReminder = game.id
                                         }
                                     }
+                                }
+                            )
+                        }
+
+                        if (selectedGameIdForReminder == game.id && !showReminderDialog) {
+                            showReminderDialog = true
+                        }
+
+                        if (selectedGameIdForReminder == game.id && showReminderDialog) {
+                            AlertDialog(
+                                onDismissRequest = {
+                                    showReminderDialog = false
+                                    selectedGameIdForReminder = null
+                                },
+                                title = { Text("Definir Lembrete") },
+                                text = {
+                                    Column {
+                                        Text("Deseja definir um lembrete para jogar ${game.name}?")
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.padding(top = 16.dp)
+                                        ) {
+                                            Checkbox(
+                                                checked = doNotAskAgain,
+                                                onCheckedChange = {
+                                                    doNotAskAgain = it
+                                                    // Salvar a escolha do usuário (por exemplo, usando SharedPreferences ou DataStore)
+                                                    println("Usuário optou por 'Não perguntar novamente': $doNotAskAgain")
+                                                }
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text("Não perguntar sobre lembretes novamente")
+                                        }
+                                    }
+                                },
+                                confirmButton = {
+                                    TextButton(
+                                        onClick = {
+                                            showReminderDialog = false
+                                            selectedGameIdForReminder = null
+                                            navController.navigate("gameDetails/${game.id}")
+                                        }
+                                    ) {
+                                        Text("Confirmar")
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(
+                                        onClick = {
+                                            showReminderDialog = false
+                                            selectedGameIdForReminder = null
+                                        }
+                                    ) {
+                                        Text("Cancelar")
+                                    }
+                                },
+                                properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true)
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        ) {
+                            Image(
+                                painter = rememberAsyncImagePainter(game.imageUrl),
+                                contentDescription = game.name,
+                                modifier = Modifier
+                                    .size(200.dp)
+                                    .align(Alignment.CenterVertically)
+                                    .fillMaxHeight()
+                                    .clickable {
+                                        expandedImageUrl =
+                                            game.imageUrl  // Define expanded image URL
+                                    }
+                            )
+
+                            // Game details
+                            Column(
+                                modifier = Modifier.padding(
+                                    end = 22.dp,
+                                    top = 24.dp,
+                                    bottom = 24.dp
                                 )
+                            ) {
+                                // Game name, release date and favorite icon
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        // Game name
+                                        Text(
+                                            text = game.name,
+                                            style = MaterialTheme.typography.titleMedium.copy(
+                                                fontWeight = FontWeight.Bold
+                                            ),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+
+                                        // Release date
+                                        Text(
+                                            text = game.releaseDate,
+                                            style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    // Favorite icon
+                                    Icon(
+                                        imageVector = if (game.isFavorite.value) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                        contentDescription = "Favorite",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .clickable {
+                                                if (!game.isFavorite.value) {
+                                                    game.isFavorite.value = !game.isFavorite.value
+                                                    coroutineScope.launch {
+                                                        val result = snackbarHostState.showSnackbar(
+                                                            message = "${game.name} foi adicionado aos favoritos!",
+                                                            // actionLabel = "VER",
+                                                            duration = SnackbarDuration.Short,
+                                                            withDismissAction = true
+                                                        )
+
+                                                        /*
+                                                        if (result == SnackbarResult.ActionPerformed) {
+                                                            navController.navigate("lista/favoritos")
+                                                        } */
+                                                    }
+                                                } else {
+                                                    gameToRemoveFromFavorites = game.id
+                                                    showRemoveFavoriteDialog = true
+                                                }
+                                            }
+                                    )
+                                }
+
+                                //Spacer(modifier = Modifier.height(8.dp))
+
+                                // Platforms
+                                game.platforms?.let {
+                                    Text(
+                                        text = it.joinToString(", "), // Exibe as plataformas separadas por vírgula
+                                        style = MaterialTheme.typography.bodySmall,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.padding(top = 8.dp),
+                                    )
+                                }
+
+                                // Game description
+                                Text(
+                                    text = game.description,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    maxLines = 4,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(top = 8.dp)
+                                )
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                // Botão "Adicionar à Lista"
+                                Row(
+                                    modifier = Modifier
+                                        .height(48.dp)
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp)) // Define as bordas arredondadas
+                                        .border(
+                                            width = 1.dp,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                        .background(
+                                            if (game.isAddedToList.value) MaterialTheme.colorScheme.primary
+                                            else Color.Transparent // Fundo transparente se não adicionado
+                                        )
+                                        .clickable {
+                                            if (game.isAddedToList.value) {
+                                                dropdownExpandedByGameId =
+                                                    game.id // Alterna o valor do dropdown
+                                            } else {
+                                                selectedGameId = game.id
+                                            }
+                                        },
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(
+                                        imageVector = if (!game.isAddedToList.value) Icons.Filled.BookmarkBorder else Icons.Filled.Bookmark,
+                                        contentDescription = if (!game.isAddedToList.value) "Adicionar" else "Adicionado",
+                                        tint = if (!game.isAddedToList.value) MaterialTheme.colorScheme.primary else Color.White
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = if (!game.isAddedToList.value) "Adicionar à Lista" else "Adicionado",
+                                        color = if (!game.isAddedToList.value) MaterialTheme.colorScheme.primary else Color.White,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.align(Alignment.CenterVertically)
+                                    )
+                                }
+
+                                if (game.isAddedToList.value && dropdownExpandedByGameId == game.id) {
+                                    Box(modifier = Modifier.padding(start = 8.dp)) {
+                                        MaintenanceDropdownMenu(
+                                            game = game,
+                                            expanded = dropdownExpandedByGameId == game.id,
+                                            onDismissRequest = { dropdownExpandedByGameId = null },
+                                            onEdit = {
+                                                dropdownExpandedByGameId = null
+                                                selectedGameId = game.id
+                                            },
+                                            onRemove = {
+                                                dropdownExpandedByGameId = null
+                                                game.isAddedToList.value = false
+                                                coroutineScope.launch {
+                                                    val result = snackbarHostState.showSnackbar(
+                                                        message = "${game.name} foi removido da sua lista",
+                                                        actionLabel = "DESFAZER",
+                                                        duration = SnackbarDuration.Short,
+                                                        withDismissAction = true
+                                                    )
+                                                    if (result == SnackbarResult.ActionPerformed) {
+                                                        game.isAddedToList.value = true
+                                                    }
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+
+                                if (showRemoveFavoriteDialog && gameToRemoveFromFavorites == game.id) {
+                                    AlertDialog(
+                                        onDismissRequest = { showRemoveFavoriteDialog = false },
+                                        title = {
+                                            Text(text = "Remover jogo dos favoritos")
+                                        },
+                                        text = {
+                                            Text("Você tem certeza que deseja remover '${game.name}' dos seus favoritos?")
+                                        },
+                                        confirmButton = {
+                                            TextButton(
+                                                onClick = {
+                                                    showRemoveFavoriteDialog = false
+                                                    game.isFavorite.value = !game.isFavorite.value
+                                                    coroutineScope.launch {
+                                                        val result = snackbarHostState.showSnackbar(
+                                                            message = "${game.name} foi removido dos favoritos",
+                                                            actionLabel = "DESFAZER",
+                                                            duration = SnackbarDuration.Short,
+                                                            withDismissAction = true
+                                                        )
+                                                        if (result == SnackbarResult.ActionPerformed) {
+                                                            game.isFavorite.value = true
+                                                        }
+                                                    }
+                                                }
+                                            ) {
+                                                Text("Confirmar")
+                                            }
+                                        },
+                                        dismissButton = {
+                                            TextButton(
+                                                onClick = {
+                                                    showRemoveFavoriteDialog = false
+                                                    gameToRemoveFromFavorites = null
+                                                }) {
+                                                Text("Cancelar")
+                                            }
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
-                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
-
     expandedImageUrl?.let { imageUrl ->
         ExpandedImageDialog(imageUrl = imageUrl, onClose = { expandedImageUrl = null })
     }

@@ -16,6 +16,8 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -45,6 +47,7 @@ import com.example.app.ui.components.LoadingIndicator
 import com.example.mygamingdatabase.models.Game
 import com.example.mygamingdatabase.models.gameList
 import com.example.mygamingdatabase.models.statusDescriptions
+import com.example.mygamingdatabase.ui.components.AlarmReminderDialog
 import com.example.mygamingdatabase.ui.components.MaintenanceDropdownMenu
 import com.example.mygamingdatabase.ui.components.MaintenanceItemDialog
 import com.google.accompanist.web.rememberWebViewState
@@ -118,6 +121,10 @@ fun SlideShowSection(screenshots: List<String>?) {
 fun MainInfoSection(game: Game) {
     var expandedImageUrl by remember { mutableStateOf<String?>(null) } // To store expanded image's URL
 
+    var selectedGameId by remember { mutableStateOf<Int?>(null) }
+    var showAlarmReminder by remember { mutableStateOf(false) }
+    var gameToRemind by remember { mutableStateOf<Int?>(null) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -185,9 +192,80 @@ fun MainInfoSection(game: Game) {
                         modifier = Modifier.padding(top = 4.dp),
                         color = Color.White
                     )
+
+                    Row (
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .height(40.dp)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp)) // Define as bordas arredondadas
+                            .border(
+                                width = 1.dp,
+                                color = Color.White,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .background(
+                                if (game.isReminded.value) Color.White
+                                else Color.Black.copy(alpha = 0.3f) // Fundo preto com opacidade
+                            )
+                            .clickable {
+                                if (!game.isReminded.value) {
+                                    showAlarmReminder = true
+                                    gameToRemind = game.id
+                                } else {
+                                    game.isReminded.value = !game.isReminded.value
+                                }
+                            },
+                        verticalAlignment = Alignment.CenterVertically
+                        // horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = if (game.isReminded.value) Icons.Default.Notifications else Icons.Default.NotificationsNone,
+                            contentDescription = "Reminder",
+                            tint = if (!game.isReminded.value) Color.White else Color.Black,
+                            modifier = Modifier
+                                .padding(start = 8.dp, top = 8.dp, bottom = 8.dp)
+                                .size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (game.isReminded.value) "Lembrete" else "Lembrar-me",
+                            color = if (!game.isReminded.value) Color.White else Color.Black,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier
+                                .align(Alignment.CenterVertically)
+                                .padding(top = 8.dp, bottom = 8.dp, end = 8.dp),
+                        )
+                    }
                 }
             }
         }
+    }
+
+    if (showAlarmReminder && gameToRemind == game.id) {
+        AlarmReminderDialog(
+            game,
+            onDismissRequest = {
+                showAlarmReminder = false
+                gameToRemind = null
+            },
+            onConfirm = { hour, minute, days ->
+                Log.d("AlarmReminderDialog", "onConfirm chamado!")
+
+                if (!game.isReminded.value) {
+                    game.reminderTime.value = "$hour:$minute" // Exemplo de formatação do horário
+                    game.reminderDays.value = if (days.isNotEmpty()) {
+                        days.joinToString(", ") // Concatena os dias com vírgulas
+                    } else {
+                        "Nenhum dia selecionado"
+                    }
+                    game.isReminded.value = true
+                }
+
+                showAlarmReminder = false
+                gameToRemind = null
+            }
+        )
     }
 
     expandedImageUrl?.let { imageUrl ->

@@ -1,7 +1,6 @@
 package com.example.mygamingdatabase.ui.components
 
 import androidx.annotation.OptIn
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
@@ -32,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.media3.common.util.Log
@@ -46,7 +44,7 @@ import com.example.mygamingdatabase.models.statusDescriptions
 fun MaintenanceItemDialog (
     game: Game, // Dados do jogo a ser editado
     onDismiss: () -> Unit, // Ação de dismiss
-    onSave: (Game) -> Unit // Ação para salvar as alterações
+    onSave: (Game) -> Unit, // Ação para salvar as alterações
 ) {
     // Estados locais
     val selectedStatus = remember { mutableStateOf(game.status) }
@@ -188,6 +186,7 @@ fun MaintenanceItemDialog (
                 // Ao salvar, passamos os dados alterados para o callback onSave
                 onSave(game.copy(userScore = selectedScore.value, status = selectedStatus.value))
                 Log.d("MaintenanceItemDialog", "Status selecionado: ${selectedStatus.value}, Nota selecionada: ${selectedScore.value}, Adicionado: ${game.isAddedToList}")
+                onDismiss()
             }) {
                 Text("Confirmar")
             }

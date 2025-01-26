@@ -15,6 +15,9 @@ data class Game(
     val screenshots: List<String>?,  // Screenshots URLs
     val isFavorite: MutableState<Boolean>, // If the game is favorite
     val isAddedToList: MutableState<Boolean>,
+    val isReminded: MutableState<Boolean>,
+    val reminderTime: MutableState<String> = mutableStateOf(""), // HH:mm format
+    val reminderDays: MutableState<String> = mutableStateOf(""), // CSV format: "Monday,Wednesday,Friday"
     var userScore: Int?, // User score (1-10)
     var status: GameStatus, // Status of the game
     var artworkUrl: String?
@@ -95,6 +98,7 @@ val gameList = listOf(
             "https://images.igdb.com/igdb/image/upload/t_720p/schjpn.webp"),
         isFavorite = mutableStateOf(false),
         isAddedToList = mutableStateOf(false),
+        isReminded = mutableStateOf(false),
         userScore = null, // Initially no score
         status = GameStatus.PLANNING_TO_PLAY, // Default status,
         artworkUrl = "https://images.igdb.com/igdb/image/upload/t_720p/ar36b9.webp"
@@ -115,6 +119,7 @@ val gameList = listOf(
         ),
         isFavorite = mutableStateOf(false),
         isAddedToList = mutableStateOf(false),
+        isReminded = mutableStateOf(false),
         userScore = null,
         status = GameStatus.PLANNING_TO_PLAY,
         artworkUrl = "https://images.igdb.com/igdb/image/upload/t_720p/ar5l8.webp"
@@ -134,6 +139,7 @@ val gameList = listOf(
             "https://images.igdb.com/igdb/image/upload/t_720p/ar4m5.webp"),
         isFavorite = mutableStateOf(false),
         isAddedToList = mutableStateOf(false),
+        isReminded = mutableStateOf(false),
         userScore = null,
         status = GameStatus.PLANNING_TO_PLAY,
         artworkUrl = "https://images.igdb.com/igdb/image/upload/t_720p/ar4m9.webp"
@@ -151,6 +157,7 @@ val gameList = listOf(
             "https://images.igdb.com/igdb/image/upload/t_720p/scdl5k.webp"),
         isFavorite = mutableStateOf(false),
         isAddedToList = mutableStateOf(false),
+        isReminded = mutableStateOf(false),
         userScore = null,
         status = GameStatus.PLANNING_TO_PLAY,
         artworkUrl = "https://images.igdb.com/igdb/image/upload/t_720p/ar17go.webp"
@@ -172,6 +179,7 @@ val gameList = listOf(
             "https://images.igdb.com/igdb/image/upload/t_720p/scq0k5.webp"),
         isFavorite = mutableStateOf(false),
         isAddedToList = mutableStateOf(false),
+        isReminded = mutableStateOf(false),
         userScore = null,
         status = GameStatus.PLANNING_TO_PLAY,
         artworkUrl = "https://images.igdb.com/igdb/image/upload/t_720p/ar1oia.webp"
@@ -192,6 +200,7 @@ val gameList = listOf(
         isFavorite = mutableStateOf(false),
         isAddedToList = mutableStateOf(false),
         userScore = null,
+        isReminded = mutableStateOf(false),
         status = GameStatus.PLANNING_TO_PLAY,
         artworkUrl = "https://images.igdb.com/igdb/image/upload/t_720p/arive.webp"
     ),
@@ -213,6 +222,7 @@ val gameList = listOf(
             "https://images.igdb.com/igdb/image/upload/t_720p/sc6lce.webp"),
         isFavorite = mutableStateOf(false),
         isAddedToList = mutableStateOf(false),
+        isReminded = mutableStateOf(false),
         userScore = null,
         status = GameStatus.PLANNING_TO_PLAY,
         artworkUrl = "https://images.igdb.com/igdb/image/upload/t_720p/ar8eu.webp"
@@ -232,6 +242,7 @@ val gameList = listOf(
             "https://images.igdb.com/igdb/image/upload/t_720p/scf8q0.webp"),
         isFavorite = mutableStateOf(false),
         isAddedToList = mutableStateOf(false),
+        isReminded = mutableStateOf(false),
         userScore = null,
         status = GameStatus.PLANNING_TO_PLAY,
         artworkUrl = "https://images.igdb.com/igdb/image/upload/t_720p/ar1cnh.webp"
@@ -251,6 +262,7 @@ val gameList = listOf(
             "https://images.igdb.com/igdb/image/upload/t_720p/q634ullxbvipm6q6mcq9.webp"),
         isFavorite = mutableStateOf(false),
         isAddedToList = mutableStateOf(false),
+        isReminded = mutableStateOf(false),
         userScore = null,
         status = GameStatus.PLANNING_TO_PLAY,
         artworkUrl = "https://images.igdb.com/igdb/image/upload/t_720p/ylrp6zuf9e7tcu1nvuir.webp"
@@ -270,6 +282,7 @@ val gameList = listOf(
             "https://images.igdb.com/igdb/image/upload/t_720p/scuxdf.webp"),
         isFavorite = mutableStateOf(false),
         isAddedToList = mutableStateOf(false),
+        isReminded = mutableStateOf(false),
         userScore = null,
         status = GameStatus.PLANNING_TO_PLAY,
         artworkUrl = "https://images.igdb.com/igdb/image/upload/t_720p/ar38va.webp"

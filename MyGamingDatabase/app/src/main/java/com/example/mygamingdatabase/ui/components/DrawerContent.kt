@@ -20,20 +20,24 @@ import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VideoLibrary
-import androidx.compose.material3.Divider
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
@@ -41,6 +45,30 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 fun DrawerContent(navController: NavHostController, onCloseDrawer: () -> Unit) {
     val context = LocalContext.current
     val currentDestination = navController.currentBackStackEntryAsState().value?.destination?.route
+
+    var showExitDialog by remember { mutableStateOf(false) }
+
+    if (showExitDialog) {
+        AlertDialog(
+            onDismissRequest = { showExitDialog = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    showExitDialog = false
+                    Toast.makeText(context, "Você saiu. Até mais!", Toast.LENGTH_SHORT).show()
+                    // navController.navigate("login") // Navega para a tela de login
+                }) {
+                    Text("Confirmar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showExitDialog = false }) {
+                    Text("Cancelar")
+                }
+            },
+            title = { Text("Sair") },
+            text = { Text("Tem certeza de que deseja sair?") }
+        )
+    }
 
     Surface(
         modifier = Modifier
@@ -130,9 +158,7 @@ fun DrawerContent(navController: NavHostController, onCloseDrawer: () -> Unit) {
                 route = "logout",
                 currentRoute = currentDestination,
                 onClick = {
-                    /* navController.navigate("login") */
-                    Toast.makeText(context, "Você saiu. Até mais!", Toast.LENGTH_SHORT).show()
-                    onCloseDrawer()
+                    showExitDialog = true
                 }
             )
 
