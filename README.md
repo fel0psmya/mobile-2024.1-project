@@ -117,7 +117,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ## 📸Screenshots Evolution<a name = "screenshots"></a>
 ### 🏁Sprint 1
-<div style="display: flex; width:20vw; gap:5px">
+<div style="display: flex; width:20vw; gap:5px; height: 30vh;">
   <img src="https://raw.githubusercontent.com/fel0psmya/mobile-2024.1-project/e4e4fefc3645741e205a0689c364234edb64f832/Screenshots/Entrega%201/FavoritesScreen.jpg" style="margin-right: 10px;">
   <img src="https://raw.githubusercontent.com/fel0psmya/mobile-2024.1-project/e4e4fefc3645741e205a0689c364234edb64f832/Screenshots/Entrega%201/GameDetailsScreen.jpg">
   
@@ -127,7 +127,7 @@ These instructions will get you a copy of the project up and running on your loc
 </div>
 
 ### 🏁Sprint 2
-<div style="display: flex; width:20vw; gap:5px">
+<div style="display: flex; width:20vw; gap:5px; height: 30vh;">
   <img src="https://github.com/fel0psmya/mobile-2024.1-project/blob/main/Screenshots/2nd%20Delivery/ListScreen%20-%20List%20Tab.jpg?raw=true" style="margin-right: 10px;">
   <img src="https://github.com/fel0psmya/mobile-2024.1-project/blob/main/Screenshots/2nd%20Delivery/GameDetailsScreen.jpg?raw=true">
   <img src="https://github.com/fel0psmya/mobile-2024.1-project/blob/main/Screenshots/2nd%20Delivery/HelpScreen.jpg?raw=true">
@@ -137,7 +137,7 @@ These instructions will get you a copy of the project up and running on your loc
 </div>
 
 ## 🎈Video demo <a name="Video"></a>
-<a href="https://drive.google.com/file/d/17t_LahBxm9gcY35ldpBFQIWylDbvES45/view?usp=drivesdk">To watch the video click here !</a>
+<a href="https://drive.google.com/file/d/17t_LahBxm9gcY35ldpBFQIWylDbvES45/view?usp=drivesdk">To watch the videolick here !</a>
 
 ## 🚀 Tasks Development Roadmap <a name = "deployment"></a>
 ### 🚩Sprint 1:
