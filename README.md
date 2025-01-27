@@ -1,4 +1,4 @@
-<h3 align="center">My Gaming Database: V 0.1.0</h3>
+<h3 align="center">My Gaming Database: V 0.2.0</h3>
 
 
 
@@ -23,6 +23,7 @@ MyGamingDatabase is a game library management app inspired by MyAnimeList. It wa
 Here's the English version in the format of a README:
 
 ### **Key Features**
+### 🏁Sprint 1
 
 #### 1. **Game List Management**
    - **Favorite games list**: Store your favorite games for easy access.
@@ -46,10 +47,54 @@ Here's the English version in the format of a README:
 
 #### 6. **Expanded Image View**
    - Ability to expand the game cover image to full screen for better viewing.
+### 🏁Sprint 2
+#### 7. **List Management Enhancements**
+   - **Tabbed Interface**: Combines "Favorites" and "My List" into a unified screen with two tabs.
+     - **Favorites Tab**: Displays a grid of games marked as favorites. Includes a button on each game cover for quick removal from favorites.
+     - **My List Tab**: Displays a grid of games added to the user's list, with a dropdown menu for editing or removing games. Supports filtering games by status ("Playing", "Want to Play", "Droped", "Completed").
+
+#### 8. **Notifications and Reminders**
+   - **Custom Notifications**: Allows users to set reminders for specific games.
+   - **Recurring Alerts**: Configurable weekly notifications for games on the "Playing" or "Wanted" list.
+
+#### 9. **Smooth Animations**
+   - **Fade-in Effects**: Game cards on the Home Screen feature fade-in animations for a polished experience.
+   - **Interactive Elements**: Buttons include scale and color animations for enhanced feedback during user interactions.
+   - **Slide Transitions**: Smooth slide animations when navigating between screens, adding a dynamic and seamless feel to the user experience.
+
+#### 10. **Enhanced Filtering and Sorting**
+   - **Status-Based Sorting**: Organizes games in "My List" by their status, making it easier to manage "Playing", "Wanted", "Droped" and "Completed" games.
+
+#### 11. **Enhanced Settings Screen**
+   - **Theme Persistence**: The application theme (light or dark mode) is now saved using Jetpack DataStore, ensuring user preferences are retained across sessions.
+   - **Clear Favorites Option**: Easily clear the entire favorites list with a single action, confirmed via an alert dialog.
+   - **Clear List Option**: Allows users to clear their entire game list, providing a streamlined way to manage their library.
+   - **User-Friendly Interface**: Simplified controls for toggling between light and dark modes and managing lists efficiently.
+
+#### 12. **Loading Indicator in Game Details Screen**
+   - **Progress Indicator**: A loading animation is displayed when fetching detailed game information, providing feedback to users during data retrieval.
+   - **Seamless Experience**: Ensures smooth transitions by indicating the loading state before the details are fully displayed.
+   - **Consistent Design**: The indicator integrates seamlessly with the overall visual style of the application.
+
+---
+
+---
+
+### **Future Expansions**
+   - **Enhanced Game Details**: Integration of IGDB API to include screenshots, trailers, and community reviews directly in the details screen.
+   - **Advanced Social Features**: 
+     - User profiles showcasing created lists, favorite games, and completed games.
+     - Sharing capabilities for lists with friends or the broader community.
+   - **Community Reviews and Ratings**: Enable users to write and share reviews for games they have played, with ratings visible to others.
+   - **Achievements and Badges**: Reward users with badges for milestones such as completing games or adding a certain number of favorites.
+   - **Management Screen**: A dedicated screen for managing notifications, including options to edit or remove them.
+
+
 
 ---
 
 ### **Screen Structure**
+### 🏁Sprint 1
 
 #### 1. **Home Screen**
    - Displays the search bar and a list of filtered games.
@@ -70,6 +115,15 @@ Here's the English version in the format of a README:
 
 #### 6. **Help Screen**
    - Provides helpful information and answers to frequently asked questions.
+### 🏁Sprint 2
+
+#### 7. **Favorites/My List Screen**
+   - Redesigned with a **TabRow** to switch between "Favorites" and "My List."
+   - **Favorites Tab**:
+     - Displays a grid of favorited games with quick access to remove them.
+   - **My List Tab**:
+     - Shows games added by the user, with dropdown options for editing status or removing them.
+     - Includes filters to display only games marked as "Playing", "Wanted", "Droped" or "Completed".
 
 ---
 
@@ -117,27 +171,17 @@ These instructions will get you a copy of the project up and running on your loc
 
 ## 📸Screenshots Evolution<a name = "screenshots"></a>
 ### 🏁Sprint 1
-<div style="display: flex; width:20vw; gap:5px; height: 30vh;">
-  <img src="https://raw.githubusercontent.com/fel0psmya/mobile-2024.1-project/e4e4fefc3645741e205a0689c364234edb64f832/Screenshots/Entrega%201/FavoritesScreen.jpg" style="margin-right: 10px;">
-  <img src="https://raw.githubusercontent.com/fel0psmya/mobile-2024.1-project/e4e4fefc3645741e205a0689c364234edb64f832/Screenshots/Entrega%201/GameDetailsScreen.jpg">
-  
-  <img src="https://raw.githubusercontent.com/fel0psmya/mobile-2024.1-project/e4e4fefc3645741e205a0689c364234edb64f832/Screenshots/Entrega%201/HelpScreen.jpg">
-  <img src="https://raw.githubusercontent.com/fel0psmya/mobile-2024.1-project/e4e4fefc3645741e205a0689c364234edb64f832/Screenshots/Entrega%201/HomeScreen.jpg">
-  <img src="https://raw.githubusercontent.com/fel0psmya/mobile-2024.1-project/e4e4fefc3645741e205a0689c364234edb64f832/Screenshots/Entrega%201/SettingsScreen.jpg">
-</div>
+- <a href="https://drive.google.com/file/d/1YL1TqQFe8c_KNNowKjyO2G-wQeR9gpv_/view?usp=drivesdk">To see the images click here! </a>
 
 ### 🏁Sprint 2
-<div style="display: flex; width:20vw; gap:5px; height: 30vh;">
-  <img src="https://github.com/fel0psmya/mobile-2024.1-project/blob/main/Screenshots/2nd%20Delivery/ListScreen%20-%20List%20Tab.jpg?raw=true" style="margin-right: 10px;">
-  <img src="https://github.com/fel0psmya/mobile-2024.1-project/blob/main/Screenshots/2nd%20Delivery/GameDetailsScreen.jpg?raw=true">
-  <img src="https://github.com/fel0psmya/mobile-2024.1-project/blob/main/Screenshots/2nd%20Delivery/HelpScreen.jpg?raw=true">
-  <img src="https://github.com/fel0psmya/mobile-2024.1-project/blob/main/Screenshots/2nd%20Delivery/HomeScreen.jpg?raw=true">
-  <img src="https://github.com/fel0psmya/mobile-2024.1-project/blob/main/Screenshots/2nd%20Delivery/Drawer.jpg?raw=true">
-  <img src="https://github.com/fel0psmya/mobile-2024.1-project/blob/main/Screenshots/2nd%20Delivery/SettingsScreen.jpg?raw=true">
-</div>
+- <a href="https://github.com/fel0psmya/mobile-2024.1-project/tree/main/Screenshots/2nd%20Delivery">To see the images click here!</a>
 
 ## 🎈Video demo <a name="Video"></a>
-<a href="https://drive.google.com/file/d/17t_LahBxm9gcY35ldpBFQIWylDbvES45/view?usp=drivesdk">To watch the videolick here !</a>
+### 🏁Sprint 1
+- <a href="https://github.com/fel0psmya/mobile-2024.1-project/tree/main/Screenshots/1st%20Delivery">To watch the video click here !</a>
+
+### 🏁Sprint 2
+- <a href="https://drive.google.com/file/d/17t_LahBxm9gcY35ldpBFQIWylDbvES45/view?usp=drivesdk">To watch the video click here !</a>
 
 ## 🚀 Tasks Development Roadmap <a name = "deployment"></a>
 ### 🚩Sprint 1:
