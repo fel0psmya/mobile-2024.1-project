@@ -6,6 +6,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
@@ -96,7 +98,11 @@ class MainActivity : ComponentActivity() {
                                 startDestination = "home",
                                 modifier = Modifier.padding(innerPadding)
                             ) {
-                                composable("home") {
+                                composable(
+                                    "home",
+                                    enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
+                                    exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) }
+                                ) {
                                     HomeScreen(
                                         navController,
                                         context = LocalContext.current,
@@ -105,15 +111,35 @@ class MainActivity : ComponentActivity() {
                                         }
                                     )
                                 }
-                                composable("list") { ListsScreen(navController) }
-                                composable("gameDetails/{gameId}") { backStackEntry ->
+                                composable(
+                                    "list",
+                                    enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
+                                    exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) }
+                                ) {
+                                    ListsScreen(navController)
+                                }
+                                composable(
+                                    "gameDetails/{gameId}",
+                                    enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
+                                    exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) }
+                                ) { backStackEntry ->
                                     val gameId = backStackEntry.arguments?.getString("gameId")
                                     if (gameId != null) {
                                         GameDetailsScreen(gameId = gameId)
                                     }
                                 }
-                                composable("help") { HelpScreen() }
-                                composable("settings") {
+                                composable(
+                                    "help",
+                                    enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
+                                    exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) }
+                                ) {
+                                    HelpScreen()
+                                }
+                                composable(
+                                    "settings",
+                                    enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
+                                    exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) }
+                                ) {
                                     SettingsScreen(
                                         isDarkTheme = isDarkTheme,
                                         onThemeChange = {

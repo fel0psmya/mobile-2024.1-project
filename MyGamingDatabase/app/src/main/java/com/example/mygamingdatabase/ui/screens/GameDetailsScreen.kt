@@ -1,6 +1,8 @@
 package com.example.mygamingdatabase.ui.screens
 
 import android.util.Log
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -193,6 +195,15 @@ fun MainInfoSection(game: Game) {
                         color = Color.White
                     )
 
+                    // Botão de Lembrete
+                    val rmndBackgroundColor by animateColorAsState(
+                        targetValue =  if (game.isReminded.value) Color.White else Color.Black.copy(alpha = 0.3f), // Alterando entre cor de destaque e transparente
+                        animationSpec = tween(durationMillis = 400) // Duração da animação
+                    )
+                    val rmndTextColor by animateColorAsState(
+                        targetValue =  if (game.isReminded.value) Color.Black else Color.White,
+                        animationSpec = tween(durationMillis = 400)
+                    )
                     Row (
                         modifier = Modifier
                             .padding(top = 8.dp)
@@ -205,8 +216,7 @@ fun MainInfoSection(game: Game) {
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .background(
-                                if (game.isReminded.value) Color.White
-                                else Color.Black.copy(alpha = 0.3f) // Fundo preto com opacidade
+                                rmndBackgroundColor // Fundo preto com opacidade
                             )
                             .clickable {
                                 if (!game.isReminded.value) {
@@ -222,7 +232,7 @@ fun MainInfoSection(game: Game) {
                         Icon(
                             imageVector = if (game.isReminded.value) Icons.Default.Notifications else Icons.Default.NotificationsNone,
                             contentDescription = "Reminder",
-                            tint = if (!game.isReminded.value) Color.White else Color.Black,
+                            tint = rmndTextColor,
                             modifier = Modifier
                                 .padding(start = 8.dp, top = 8.dp, bottom = 8.dp)
                                 .size(24.dp)
@@ -230,7 +240,7 @@ fun MainInfoSection(game: Game) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = if (game.isReminded.value) "Lembrete" else "Lembrar-me",
-                            color = if (!game.isReminded.value) Color.White else Color.Black,
+                            color = rmndTextColor,
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier
                                 .align(Alignment.CenterVertically)
@@ -297,6 +307,15 @@ fun ActionButtonsSection(game: Game) {
         )
     }
 
+    // Botão de favoritos
+    val favBackgroundColor by animateColorAsState(
+        targetValue =  if (game.isFavorite.value) MaterialTheme.colorScheme.primary else Color.Transparent, // Alterando entre cor de destaque e transparente
+        animationSpec = tween(durationMillis = 400) // Duração da animação
+    )
+    val favTextColor by animateColorAsState(
+        targetValue =  if (game.isFavorite.value) Color.White else MaterialTheme.colorScheme.primary,
+        animationSpec = tween(durationMillis = 400)
+    )
     Row (
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -309,8 +328,7 @@ fun ActionButtonsSection(game: Game) {
                 shape = RoundedCornerShape(8.dp)
             )
             .background(
-                if (game.isFavorite.value) MaterialTheme.colorScheme.primary
-                else Color.Transparent // Fundo transparente se não adicionado
+                favBackgroundColor
             )
             .clickable {
                 if (!game.isFavorite.value) {
@@ -326,12 +344,12 @@ fun ActionButtonsSection(game: Game) {
         Icon(
             imageVector = if (game.isFavorite.value) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
             contentDescription = "Favorite",
-            tint = if (!game.isFavorite.value) MaterialTheme.colorScheme.primary else Color.White
+            tint = favTextColor
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = if (game.isFavorite.value) "Favorito" else "Favoritar",
-            color = if (!game.isFavorite.value) MaterialTheme.colorScheme.primary else Color.White,
+            color = favTextColor,
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.align(Alignment.CenterVertically)
         )
@@ -340,6 +358,14 @@ fun ActionButtonsSection(game: Game) {
     Spacer(modifier = Modifier.height(12.dp))
 
     // Botão "Adicionar à Lista"
+    val listBackgroundColor by animateColorAsState(
+        targetValue =  if (game.isAddedToList.value) MaterialTheme.colorScheme.primary else Color.Transparent, // Alterando entre cor de destaque e transparente
+        animationSpec = tween(durationMillis = 400) // Duração da animação
+    )
+    val listTextColor by animateColorAsState(
+        targetValue =  if (game.isAddedToList.value) Color.White else MaterialTheme.colorScheme.primary,
+        animationSpec = tween(durationMillis = 400)
+    )
     Row(
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -352,8 +378,7 @@ fun ActionButtonsSection(game: Game) {
                 shape = RoundedCornerShape(8.dp)
             )
             .background(
-                if (game.isAddedToList.value) MaterialTheme.colorScheme.primary
-                else Color.Transparent // Fundo transparente se não adicionado
+                listBackgroundColor
             )
             .clickable {
                 if (game.isAddedToList.value) {
@@ -368,12 +393,12 @@ fun ActionButtonsSection(game: Game) {
         Icon(
             imageVector = if (!game.isAddedToList.value) Icons.Filled.BookmarkBorder else Icons.Filled.Bookmark,
             contentDescription = if (!game.isAddedToList.value) "Adicionar" else "Adicionado",
-            tint = if (!game.isAddedToList.value) MaterialTheme.colorScheme.primary else Color.White
+            tint = listTextColor
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = if (!game.isAddedToList.value) "Adicionar à Lista" else "${game.userScore} | ${statusDescriptions[game.status]}",
-            color = if (!game.isAddedToList.value) MaterialTheme.colorScheme.primary else Color.White,
+            color = listTextColor,
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.align(Alignment.CenterVertically)
         )

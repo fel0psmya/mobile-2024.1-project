@@ -9,6 +9,8 @@ import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.runtime.Composable
@@ -140,19 +142,27 @@ fun AlarmReminderDialog(
 
                 // Seleção de dias
                 // Text("Dias da semana:")
+
                 Row(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     daysOfWeek.forEach { day ->
                         val isSelected = selectedDays.value.contains(day)
-
+                        val btnBackgroundColor by animateColorAsState(
+                            targetValue =  if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent, // Alterando entre cor de destaque e transparente
+                            animationSpec = tween(durationMillis = 400) // Duração da animação
+                        )
+                        val btnTextColor by animateColorAsState(
+                            targetValue =  if (isSelected) Color.White else MaterialTheme.colorScheme.primary,
+                            animationSpec = tween(durationMillis = 400)
+                        )
                         Box(
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
+                                    btnBackgroundColor
                                 )
                                 .border(
                                     width = 1.dp,
@@ -166,7 +176,7 @@ fun AlarmReminderDialog(
                         ) {
                             Text(
                                 text = day,
-                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.primary,
+                                color = btnTextColor,
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }

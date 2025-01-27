@@ -1,5 +1,8 @@
 package com.example.mygamingdatabase.ui.components
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.VideoLibrary
@@ -9,6 +12,11 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
@@ -24,18 +32,27 @@ fun BottomNavBar(navController: NavController) {
         )
         items.forEach { (route, label, icon) ->
             val isSelected = currentDestination == route
+            val backgroundColor by animateColorAsState(
+                targetValue =  if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, // Alterando entre cor de destaque e transparente
+                animationSpec = tween(durationMillis = 400) // Duração da animação
+            )
+            val iconSize by animateDpAsState(
+                targetValue = if (isSelected) 30.dp else 24.dp, // O tamanho do ícone será 30.dp se o jogo for favorito, caso contrário 24.dp
+                animationSpec = tween(durationMillis = 500) // Animação suave
+            )
             NavigationBarItem(
                 icon = {
                     Icon(
                         icon,
                         contentDescription = label,
-                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = backgroundColor,
+                        modifier = Modifier.size(iconSize) // Aplica o tamanho animado
                     )
                 }, // Specific icon for each item
                 label = {
                     Text(
                         label,
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        color = backgroundColor
                     )
                 },
                 selected = false,
