@@ -115,24 +115,32 @@ These instructions will get you a copy of the project up and running on your loc
    - Run the project:  
      `java -jar MyProject.jar`
 
-## 📸Screenshots <a name = "screenshots"></a>
-<div style="display: flex; width:30vw;">
+## 📸Screenshots Evolution<a name = "screenshots"></a>
+### 🏁Sprint 1
+<div style="display: flex; width:20vw; gap:5px">
   <img src="https://raw.githubusercontent.com/fel0psmya/mobile-2024.1-project/e4e4fefc3645741e205a0689c364234edb64f832/Screenshots/Entrega%201/FavoritesScreen.jpg" style="margin-right: 10px;">
   <img src="https://raw.githubusercontent.com/fel0psmya/mobile-2024.1-project/e4e4fefc3645741e205a0689c364234edb64f832/Screenshots/Entrega%201/GameDetailsScreen.jpg">
   
-</div>
-<div style="display: flex; width:30vw;">
   <img src="https://raw.githubusercontent.com/fel0psmya/mobile-2024.1-project/e4e4fefc3645741e205a0689c364234edb64f832/Screenshots/Entrega%201/HelpScreen.jpg">
   <img src="https://raw.githubusercontent.com/fel0psmya/mobile-2024.1-project/e4e4fefc3645741e205a0689c364234edb64f832/Screenshots/Entrega%201/HomeScreen.jpg">
   <img src="https://raw.githubusercontent.com/fel0psmya/mobile-2024.1-project/e4e4fefc3645741e205a0689c364234edb64f832/Screenshots/Entrega%201/SettingsScreen.jpg">
 </div>
 
+### 🏁Sprint 2
+<div style="display: flex; width:20vw; gap:5px">
+  <img src="https://github.com/fel0psmya/mobile-2024.1-project/blob/main/Screenshots/2nd%20Delivery/ListScreen%20-%20List%20Tab.jpg?raw=true" style="margin-right: 10px;">
+  <img src="https://github.com/fel0psmya/mobile-2024.1-project/blob/main/Screenshots/2nd%20Delivery/GameDetailsScreen.jpg?raw=true">
+  <img src="https://github.com/fel0psmya/mobile-2024.1-project/blob/main/Screenshots/2nd%20Delivery/HelpScreen.jpg?raw=true">
+  <img src="https://github.com/fel0psmya/mobile-2024.1-project/blob/main/Screenshots/2nd%20Delivery/HomeScreen.jpg?raw=true">
+  <img src="https://github.com/fel0psmya/mobile-2024.1-project/blob/main/Screenshots/2nd%20Delivery/Drawer.jpg?raw=true">
+  <img src="https://github.com/fel0psmya/mobile-2024.1-project/blob/main/Screenshots/2nd%20Delivery/SettingsScreen.jpg?raw=true">
+</div>
 
 ## 🎈Video demo <a name="Video"></a>
+<a href="https://drive.google.com/file/d/17t_LahBxm9gcY35ldpBFQIWylDbvES45/view?usp=drivesdk">To watch the video click here !</a>
 
-https://drive.google.com/file/d/1YL1TqQFe8c_KNNowKjyO2G-wQeR9gpv_/view?pli=1
-
-## 🚀 Tasks Development <a name = "deployment"></a>
+## 🚀 Tasks Development Roadmap <a name = "deployment"></a>
+### 🚩Sprint 1:
 | **Contributor** | **Tasks Completed** |
 |-----------------|---------------------|
 | **Felipe**      | Project setup and creation/implementation of the following files: GameData.kt (game model), BottomNavBar.kt, DrawerContent.kt (side menu), TopBar.kt, FavoritesScreen.kt, HomeScreen.kt, GameDetailsScreen.kt, and SettingsScreen.kt (without the "clear favorites" function implementation). |
@@ -141,6 +149,19 @@ https://drive.google.com/file/d/1YL1TqQFe8c_KNNowKjyO2G-wQeR9gpv_/view?pli=1
 | **Felipe**      | Created the screenshots folder and added app screenshots. |
 | **Felipe**      | Generated the APK of the app. |
 | **Eduardo**     | Documentation and README. |
+
+### 🚩Sprint 2:
+| **Responsible**    | **Tasks Completed** |
+|--------------------|--------------------|
+| **Eduardo**  | Updated version from 1.0 to 0.1.0 in README.md and DrawerContent.kt at 1st delivery |
+| **Felipe**      | Implemented game list and favorites management/alert dialogs |
+| **Felipe**      | Implemented 'My List' screen, adjustments to dropdown buttons, alert dialogs, bottom navigation bar, drawer, and system theme support |
+| **Eduardo**  | Implemented scheduled reminder (using AlarmManager with BroadcastReceivers) to play a specific game |
+| **Eduardo**  | Implemented theme preference with JetPack DataStore |
+| **Felipe**      | Implemented animations on buttons (color and size of elements), on the BottomNavBar and when opening screens |
+| **Felipe**      | Rebuilt debug APK |
+| **Eduardo**  | Removed 'Presentation Videos' folder and added '2nd Delivery' folder inside 'Screenshots' |
+| **Eduardo**  | Added screenshots of 2nd delivery to documentation |
 
 
 
