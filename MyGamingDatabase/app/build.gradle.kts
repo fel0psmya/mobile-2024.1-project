@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+    id("org.jetbrains.kotlin.android")
+    id("com.google.gms.google-services")
+    id("org.jetbrains.compose")
 }
 
 android {
@@ -9,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.mygamingdatabase"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -40,7 +42,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.3"
     }
     packaging {
         resources {
@@ -50,48 +52,69 @@ android {
 }
 
 dependencies {
-    implementation ("androidx.core:core-ktx:1.12.0")
-    implementation ("androidx.compose.ui:ui:1.5.3")
-    implementation ("androidx.compose.material3:material3:1.3.1")
-    implementation ("androidx.compose.ui:ui-tooling-preview:1.5.3")
-    implementation ("androidx.navigation:navigation-compose:2.7.3")
-    implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
-    implementation ("androidx.activity:activity-compose:1.7.2")
-    implementation ("androidx.compose.runtime:runtime-livedata:1.5.3")
-    implementation ("androidx.core:core-splashscreen:1.0.1")
-    implementation ("androidx.compose.material:material-icons-core:1.x.x")
-    implementation ("androidx.compose.material:material-icons-extended:1.x.x")
+    // Jetpack Compose
+    implementation(platform("androidx.compose:compose-bom:2023.09.01"))
+    implementation("androidx.compose.ui:ui:1.5.3")
+    implementation("androidx.compose.material3:material3:1.3.1")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.5.3")
+    implementation(libs.androidx.media3.common.ktx)
+    debugImplementation("androidx.compose.ui:ui-tooling:1.5.3")
+    implementation("androidx.compose.runtime:runtime-livedata:1.5.3")
+    implementation("androidx.compose.material:material-icons-core:1.x.x")
+    implementation("androidx.compose.material:material-icons-extended:1.x.x")
+    implementation("androidx.compose.animation:animation:1.5.4") // Animations
 
-    // Notifications
-    implementation ("androidx.core:core-ktx:1.10.1")
+    // Navigation Compose
+    implementation("androidx.navigation:navigation-compose:2.7.3")
 
-    // Coil dependency (to request images through URLs)
-    implementation ("io.coil-kt:coil-compose:2.1.0")
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
-    // Accompanist WebView dependency
-    implementation ("com.google.accompanist:accompanist-webview:0.28.0")
+    // Lifecycle
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1") // ViewModel
+
+    // AndroidX Core
+    implementation("androidx.core:core-ktx:1.12.0") // Notifications
+    implementation("androidx.activity:activity-compose:1.7.2")
+    implementation("androidx.core:core-splashscreen:1.0.1")
+
+    // Coil (to request images through URLs)
+    implementation("io.coil-kt:coil-compose:2.1.0")
+
+    // Accompanist WebView
+    implementation("com.google.accompanist:accompanist-webview:0.28.0")
 
     // Jetpack DataStore
-    implementation ("androidx.datastore:datastore-preferences:1.0.0")
-    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 
-    // Animations
-    implementation ("androidx.compose.animation:animation:1.5.4")
-
-    // Serialization
-    implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    // JSON Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
     // Retrofit and GSON Serialization
-    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation ("com.squareup.retrofit2:converter-scalars:2.9.0")
-    implementation ("com.squareup.okhttp3:logging-interceptor:4.9.1")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.retrofit2:converter-scalars:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
+
+    // Firebase
+    implementation("com.google.firebase:firebase-database-ktx")
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-messaging-ktx:24.1.0")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+
+    // Google Sign-In (Google Social Login)
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
 
     // Test
-    implementation (libs.androidx.monitor)
-    implementation (libs.androidx.junit.ktx)
-    implementation (libs.androidx.media3.common.ktx)
-    implementation(libs.firebase.database.ktx)
-    androidTestImplementation (libs.junit.junit)
-    debugImplementation ("androidx.compose.ui:ui-tooling:1.5.4")
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform("androidx.compose:compose-bom:2023.09.01"))
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.5.3")
+    androidTestImplementation("junit:junit:4.13.2")
+    debugImplementation("androidx.compose.ui:ui-tooling:1.5.3")
+    debugImplementation("androidx.compose.ui:ui-test-manifest:1.5.3")
 }

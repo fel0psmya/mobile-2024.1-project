@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.app.ui.components.LoadingIndicator
+import com.example.mygamingdatabase.data.GameRepository
 import com.example.mygamingdatabase.data.models.Game
 import com.example.mygamingdatabase.data.models.gameList
 import com.example.mygamingdatabase.data.models.statusDescriptions
@@ -465,7 +466,8 @@ fun ActionButtonsSection(game: Game) {
 @ExperimentalMaterial3Api
 @Composable
 fun GameDetailsScreen (gameId : String, context: Context = LocalContext.current) {
-    val viewModel: GameViewModel = viewModel(factory = GameViewModelFactory(context))
+    val repository = GameRepository()
+    val viewModel: GameViewModel = viewModel(factory = GameViewModelFactory(context, repository))
     val game = viewModel.games.value.find { it.id == gameId.toInt() }
     var isLoading by remember { mutableStateOf(true) }
 

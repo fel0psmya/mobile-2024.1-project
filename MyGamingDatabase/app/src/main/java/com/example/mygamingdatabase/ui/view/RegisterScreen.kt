@@ -1,5 +1,6 @@
 package com.example.mygamingdatabase.ui.view
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,8 +17,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,11 +24,41 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.mygamingdatabase.R
+import com.example.mygamingdatabase.data.GameRepository
+import com.example.mygamingdatabase.viewmodel.GameViewModel
 
 @Composable
-fun RegisterScreen(navController: NavController) {
-    var password by remember { mutableStateOf("") }
+fun RegisterScreen(viewModel: GameViewModel, navController: NavController) {
+    var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var repeatPassword by remember { mutableStateOf("") }
+
+    var nameError by remember { mutableStateOf(false) }
+    var emailError by remember { mutableStateOf(false) }
+    var emailFormatError by remember { mutableStateOf(false) }
+    var passwordError by remember { mutableStateOf(false) }
+    var repeatPasswordError by remember { mutableStateOf(false) }
+    var passwordMismatchError by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+
+    fun isValidEmail(email: String): Boolean {
+        val emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
+        return email.matches(emailPattern.toRegex())
+    }
+
+    fun validateFields(): Boolean {
+        nameError = name.isEmpty()
+        emailError = email.isEmpty()
+        emailFormatError = !isValidEmail(email)
+        passwordError = password.isEmpty() || password.length < 6
+        repeatPasswordError = repeatPassword.isEmpty()
+        passwordMismatchError = password != repeatPassword
+
+        return !nameError && !emailError && !emailFormatError && !passwordError && !repeatPasswordError && !passwordMismatchError
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -50,22 +79,33 @@ fun RegisterScreen(navController: NavController) {
                     .typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Name TextField
             OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
+                value = name,
+                onValueChange = { name = it },
                 label = { Text("Nome") },
                 leadingIcon = {
                     Icon(imageVector = Icons.Filled.Person, contentDescription = "Email Icon")
                 },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                isError = nameError,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
+            if (nameError) {
+                Text(
+                    text = "Campo obrigatório",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(top = 4.dp)
+                )
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             // Possible username textfield
 
@@ -79,10 +119,30 @@ fun RegisterScreen(navController: NavController) {
                 },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                isError = emailError || emailFormatError,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
+            if (emailError) {
+                Text(
+                    text = "Campo obrigatório",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(top = 4.dp)
+                )
+            } else if (emailFormatError) {
+                Text(
+                    text = "Email inválido",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(top = 4.dp)
+                )
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             // Password TextField
             OutlinedTextField(
@@ -90,49 +150,100 @@ fun RegisterScreen(navController: NavController) {
                 onValueChange = { password = it },
                 label = { Text("Senha") },
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.Password, contentDescription = "Password Icon")
+                    Icon(
+                        imageVector = Icons.Default.Password,
+                        contentDescription = "Password Icon"
+                    )
                 },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                isError = passwordError,
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
+            if (passwordError) {
+                Text(
+                    text = "Campo obrigatório e deve ter no mínimo 6 caracteres",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(top = 4.dp)
+                )
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             // Repeat Password TextField
             OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
+                value = repeatPassword,
+                onValueChange = { repeatPassword = it },
                 label = { Text("Repetir Senha") },
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.Password, contentDescription = "Password Icon")
+                    Icon(
+                        imageVector = Icons.Default.Password,
+                        contentDescription = "Password Icon"
+                    )
                 },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                isError = repeatPasswordError || passwordMismatchError,
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
+            if (repeatPasswordError) {
+                Text(
+                    text = "Campo obrigatório",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(top = 4.dp)
+                )
+            } else if (passwordMismatchError) {
+                Text(
+                    text = "As senhas não coincidem",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(top = 4.dp)
+                )
+            }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Register Button
             Button(
-                onClick = { /* TODO: Implement login logic */ },
+                onClick = {
+                    Log.d("RegisterScreen", "Register button clicked")
+                    if (validateFields()) {
+                        Log.d("RegisterScreen", "Fields validated")
+                        viewModel.register(email, password, name) { }
+                        Log.d("RegisterScreen", "Registration successful, navigating to login")
+                        navController.navigate("login") {
+                            popUpTo("register") { inclusive = true }
+                        }
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium
             ) {
                 Text(text = "Cadastrar")
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
                 text = "Já tem uma conta? Faça login!",
                 modifier = Modifier.clickable {
-                    navController.navigate("login")
+                    navController.navigate("login") {
+                        popUpTo("register") { inclusive = true }
+                    }
                 },
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyMedium
+                    .copy(fontWeight = FontWeight.Bold)
             )
         }
 
@@ -145,7 +256,9 @@ fun RegisterScreen(navController: NavController) {
             Text(
                 text = "Continuar sem login",
                 modifier = Modifier.clickable {
-                    navController.navigate("home")
+                    navController.navigate("home") {
+                        popUpTo("register") { inclusive = true }
+                    }
                 },
                 color = MaterialTheme.colorScheme.primary
             )
@@ -166,5 +279,5 @@ fun RegisterScreen(navController: NavController) {
 @Preview(showBackground = true)
 @Composable
 fun RegisterScreenPreview() {
-    RegisterScreen(navController = NavController(LocalContext.current))
+    RegisterScreen(GameViewModel(LocalContext.current, GameRepository()), navController = NavController(LocalContext.current))
 }

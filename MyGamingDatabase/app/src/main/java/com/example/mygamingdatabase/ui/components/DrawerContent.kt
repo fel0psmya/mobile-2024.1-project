@@ -44,25 +44,36 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.mygamingdatabase.viewmodel.GameViewModel
 
 @Composable
-fun DrawerContent(navController: NavHostController, onCloseDrawer: () -> Unit) {
+fun DrawerContent(
+    viewModel: GameViewModel,
+    navController: NavHostController,
+    isLogged: Boolean,
+    onLogout : () -> Unit,
+    onCloseDrawer: () -> Unit
+) {
     val context = LocalContext.current
     val currentDestination = navController.currentBackStackEntryAsState().value?.destination?.route
 
     var showExitDialog by remember { mutableStateOf(false) }
-    var isLogged by remember { mutableStateOf(true) }
 
     if (showExitDialog && isLogged) {
         AlertDialog(
             onDismissRequest = { showExitDialog = false },
             confirmButton = {
-                TextButton(onClick = {
-                    isLogged = false
-                    showExitDialog = false
-                    Toast.makeText(context, "Você saiu. Até mais!", Toast.LENGTH_SHORT).show()
-                    navController.navigate("login")
-                }) {
+                TextButton(
+                    onClick = {
+                        onCloseDrawer()
+                        showExitDialog = false
+                        onLogout()
+                        viewModel.logout()
+                        Toast.makeText(context, "Você saiu. Até mais!", Toast.LENGTH_SHORT).show()
+                        navController.navigate("login") {
+                            popUpTo("home") { inclusive = true }
+                        }                    }
+                ) {
                     Text("Confirmar")
                 }
             },
@@ -105,13 +116,8 @@ fun DrawerContent(navController: NavHostController, onCloseDrawer: () -> Unit) {
                 currentRoute = currentDestination,
                 onClick = {
                     // Implementar condicional amanhã
-                    if(isLogged) {
-                        navController.navigate("profile")
-                        onCloseDrawer()
-                    } else {
-                        navController.navigate("login")
-                        onCloseDrawer()
-                    }
+                    navController.navigate("profile")
+                    onCloseDrawer()
                 }
             )
 
@@ -171,7 +177,14 @@ fun DrawerContent(navController: NavHostController, onCloseDrawer: () -> Unit) {
                 route = "login",
                 currentRoute = currentDestination,
                 onClick = {
-                    showExitDialog = true
+                    if (isLogged) {
+                        showExitDialog = true
+                    } else {
+                        navController.navigate("login") {
+                            popUpTo("home") { inclusive = true }
+                        }
+                        onCloseDrawer()
+                    }
                 }
             )
 

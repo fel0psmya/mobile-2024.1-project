@@ -17,15 +17,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.mygamingdatabase.data.GameRepository
 import com.example.mygamingdatabase.data.RetrofitInstance
 import com.example.mygamingdatabase.viewmodel.GameViewModel
 import com.example.mygamingdatabase.viewmodel.GameViewModelFactory
@@ -46,14 +51,19 @@ import com.example.mygamingdatabase.ui.view.RegisterScreen
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
-   private val viewModel: GameViewModel by viewModels {
-        GameViewModelFactory(this)
-    }
-
     @SuppressLint("CoroutineCreationDuringComposition")
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val repository = GameRepository()
+        val viewModel: GameViewModel = ViewModelProvider(
+            this,
+            GameViewModelFactory(
+                this,
+                repository
+            )
+        )[GameViewModel::class.java]
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
@@ -75,6 +85,8 @@ class MainActivity : ComponentActivity() {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
             val scope = rememberCoroutineScope()
 
+            var isLogged by remember { mutableStateOf(false) }
+
             val isDarkTheme by viewModel.isDarkTheme.collectAsState()
             val currentRoute by navController.currentBackStackEntryAsState()
 
@@ -84,7 +96,17 @@ class MainActivity : ComponentActivity() {
                     gesturesEnabled = true,
                     drawerContent = {
                         if (!listOf("login", "forgot", "register").contains(currentRoute?.destination?.route)) {
-                            DrawerContent(navController) { scope.launch { drawerState.close() } }
+                            DrawerContent(
+                                viewModel,
+                                navController,
+                                isLogged,
+                                onLogout = {
+                                    isLogged = false
+                                    scope.launch { drawerState.close() }
+                                }
+                            ) {
+                                scope.launch { drawerState.close() }
+                            }
                         }
                     },
                     content = {
@@ -111,7 +133,7 @@ class MainActivity : ComponentActivity() {
                         ) { innerPadding ->
                             NavHost(
                                 navController = navController,
-                                startDestination = "home",
+                                startDestination = "login",
                                 modifier = Modifier.padding(innerPadding)
                             ) {
                                 composable(
@@ -119,28 +141,30 @@ class MainActivity : ComponentActivity() {
                                     enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
                                     exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) }
                                 ) {
-                                    LoginScreen(navController)
+                                    LoginScreen(viewModel, navController) {
+                                        isLogged = true
+                                    }
                                 }
                                 composable(
                                     "register",
                                     enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
                                     exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) }
                                 ) {
-                                    RegisterScreen(navController)
+                                    RegisterScreen(viewModel, navController)
                                 }
                                 composable(
                                     "forgot",
                                     enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
                                     exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) }
                                 ) {
-                                    ForgotPasswordScreen(navController)
+                                    ForgotPasswordScreen(viewModel, navController)
                                 }
                                 composable(
                                     "profile",
                                     enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
                                     exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) }
                                 ) {
-                                    ProfileScreen(navController)
+                                    ProfileScreen(viewModel, navController, isLogged)
                                 }
                                 composable(
                                     "home",

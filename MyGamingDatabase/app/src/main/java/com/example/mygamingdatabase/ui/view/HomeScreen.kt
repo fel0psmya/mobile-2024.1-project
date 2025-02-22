@@ -39,6 +39,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -70,6 +72,7 @@ import com.example.mygamingdatabase.ui.components.MaintenanceItemDialog
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.draw.scale
@@ -113,6 +116,7 @@ fun HomeScreen(
     var doNotAskAgain by remember { mutableStateOf(false) }
 
     var isLoading by remember { mutableStateOf(true) }
+
     // Fetch games
     LaunchedEffect(Unit) {
         isLoading = true
