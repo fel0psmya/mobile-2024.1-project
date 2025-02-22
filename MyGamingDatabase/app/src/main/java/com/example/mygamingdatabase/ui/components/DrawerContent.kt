@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
@@ -50,15 +51,17 @@ fun DrawerContent(navController: NavHostController, onCloseDrawer: () -> Unit) {
     val currentDestination = navController.currentBackStackEntryAsState().value?.destination?.route
 
     var showExitDialog by remember { mutableStateOf(false) }
+    var isLogged by remember { mutableStateOf(true) }
 
-    if (showExitDialog) {
+    if (showExitDialog && isLogged) {
         AlertDialog(
             onDismissRequest = { showExitDialog = false },
             confirmButton = {
                 TextButton(onClick = {
+                    isLogged = false
                     showExitDialog = false
                     Toast.makeText(context, "Você saiu. Até mais!", Toast.LENGTH_SHORT).show()
-                    // navController.navigate("login") // Navega para a tela de login
+                    navController.navigate("login")
                 }) {
                     Text("Confirmar")
                 }
@@ -101,7 +104,14 @@ fun DrawerContent(navController: NavHostController, onCloseDrawer: () -> Unit) {
                 route = "profile",
                 currentRoute = currentDestination,
                 onClick = {
-                    onCloseDrawer()
+                    // Implementar condicional amanhã
+                    if(isLogged) {
+                        navController.navigate("profile")
+                        onCloseDrawer()
+                    } else {
+                        navController.navigate("login")
+                        onCloseDrawer()
+                    }
                 }
             )
 
@@ -156,9 +166,9 @@ fun DrawerContent(navController: NavHostController, onCloseDrawer: () -> Unit) {
             HorizontalDivider(modifier = Modifier.width(330.dp).align(Alignment.CenterHorizontally).padding(vertical = 12.dp))
 
             DrawerMenuItem(
-                label = "Sair",
-                icon = Icons.Default.Logout,
-                route = "logout",
+                label = if (isLogged) "Sair" else "Login",
+                icon = if (isLogged) Icons.Default.Logout else Icons.Default.Login,
+                route = "login",
                 currentRoute = currentDestination,
                 onClick = {
                     showExitDialog = true
@@ -168,7 +178,7 @@ fun DrawerContent(navController: NavHostController, onCloseDrawer: () -> Unit) {
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
-                text = "Versão 0.2.0",
+                text = "Versão 0.3.0",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier

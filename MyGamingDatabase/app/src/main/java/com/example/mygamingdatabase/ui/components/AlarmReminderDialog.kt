@@ -45,7 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import com.example.mygamingdatabase.AlarmReceiver
-import com.example.mygamingdatabase.models.Game
+import com.example.mygamingdatabase.data.models.Game
 import java.util.Calendar
 
 

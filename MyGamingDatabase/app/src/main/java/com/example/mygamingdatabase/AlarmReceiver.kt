@@ -10,8 +10,8 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import com.example.mygamingdatabase.models.Game
-import com.example.mygamingdatabase.models.gameList
+import com.example.mygamingdatabase.data.models.Game
+import com.example.mygamingdatabase.data.models.gameList
 
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {

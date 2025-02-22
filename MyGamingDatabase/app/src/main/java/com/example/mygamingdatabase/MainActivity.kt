@@ -1,5 +1,6 @@
 package com.example.mygamingdatabase
 
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -8,7 +9,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -17,8 +17,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -26,26 +24,33 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.mygamingdatabase.models.GameViewModel
-import com.example.mygamingdatabase.models.GameViewModelFactory
+import com.example.mygamingdatabase.data.RetrofitInstance
+import com.example.mygamingdatabase.viewmodel.GameViewModel
+import com.example.mygamingdatabase.viewmodel.GameViewModelFactory
 import com.example.mygamingdatabase.ui.theme.MyGamingDatabaseTheme
 import com.example.mygamingdatabase.ui.components.BottomNavBar
 import com.example.mygamingdatabase.ui.components.DrawerContent
 import com.example.mygamingdatabase.ui.components.TopBar
-import com.example.mygamingdatabase.ui.screens.SettingsScreen
-import com.example.mygamingdatabase.ui.screens.HelpScreen
-import com.example.mygamingdatabase.ui.screens.ListsScreen
-import com.example.mygamingdatabase.ui.screens.HomeScreen
-import com.example.mygamingdatabase.ui.screens.GameDetailsScreen
+import com.example.mygamingdatabase.ui.view.ForgotPasswordScreen
+import com.example.mygamingdatabase.ui.view.SettingsScreen
+import com.example.mygamingdatabase.ui.view.HelpScreen
+import com.example.mygamingdatabase.ui.view.ListsScreen
+import com.example.mygamingdatabase.ui.view.HomeScreen
+import com.example.mygamingdatabase.ui.view.GameDetailsScreen
+import com.example.mygamingdatabase.ui.view.LoginScreen
+import com.example.mygamingdatabase.ui.view.ProfileScreen
+import com.example.mygamingdatabase.ui.view.RegisterScreen
 
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
-    private val viewModel: GameViewModel by viewModels {
+   private val viewModel: GameViewModel by viewModels {
         GameViewModelFactory(this)
     }
 
+    @SuppressLint("CoroutineCreationDuringComposition")
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,27 +76,38 @@ class MainActivity : ComponentActivity() {
             val scope = rememberCoroutineScope()
 
             val isDarkTheme by viewModel.isDarkTheme.collectAsState()
+            val currentRoute by navController.currentBackStackEntryAsState()
 
             MyGamingDatabaseTheme (darkTheme = isDarkTheme){
                 ModalNavigationDrawer(
                     drawerState = drawerState,
                     gesturesEnabled = true,
                     drawerContent = {
-                        DrawerContent(navController) { scope.launch { drawerState.close() } }
+                        if (!listOf("login", "forgot", "register").contains(currentRoute?.destination?.route)) {
+                            DrawerContent(navController) { scope.launch { drawerState.close() } }
+                        }
                     },
                     content = {
                         Scaffold(
                             topBar = {
-                                TopBar(
-                                    onOpenDrawer = { scope.launch { drawerState.open() } },
-                                    onNavigateToHome = {
-                                        navController.navigate("home") {
-                                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                                if (!listOf("login", "forgot", "register").contains(currentRoute?.destination?.route)) {
+                                    TopBar(
+                                        onOpenDrawer = { scope.launch { drawerState.open() } },
+                                        onNavigateToHome = {
+                                            navController.navigate("home") {
+                                                popUpTo(navController.graph.startDestinationId) {
+                                                    inclusive = true
+                                                }
+                                            }
                                         }
-                                    }
-                                )
+                                    )
+                                }
                             },
-                            bottomBar =  { BottomNavBar(navController) }
+                            bottomBar =  {
+                                if (!listOf("login", "forgot", "register").contains(currentRoute?.destination?.route)) {
+                                    BottomNavBar(navController)
+                                }
+                            }
                         ) { innerPadding ->
                             NavHost(
                                 navController = navController,
@@ -99,13 +115,43 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier.padding(innerPadding)
                             ) {
                                 composable(
+                                    "login",
+                                    enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
+                                    exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) }
+                                ) {
+                                    LoginScreen(navController)
+                                }
+                                composable(
+                                    "register",
+                                    enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
+                                    exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) }
+                                ) {
+                                    RegisterScreen(navController)
+                                }
+                                composable(
+                                    "forgot",
+                                    enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
+                                    exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) }
+                                ) {
+                                    ForgotPasswordScreen(navController)
+                                }
+                                composable(
+                                    "profile",
+                                    enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
+                                    exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) }
+                                ) {
+                                    ProfileScreen(navController)
+                                }
+                                composable(
                                     "home",
                                     enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
                                     exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) }
                                 ) {
+                                    scope.launch { drawerState.close() }
                                     HomeScreen(
                                         navController,
                                         context = LocalContext.current,
+                                        viewModel = viewModel,
                                         onGameSelected = { game ->
                                             navController.navigate("details/${game.name}")
                                         }

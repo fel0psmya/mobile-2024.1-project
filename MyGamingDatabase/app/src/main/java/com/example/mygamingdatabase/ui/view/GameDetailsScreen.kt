@@ -1,5 +1,6 @@
-package com.example.mygamingdatabase.ui.screens
+package com.example.mygamingdatabase.ui.view
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -44,14 +45,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.app.ui.components.LoadingIndicator
-import com.example.mygamingdatabase.models.Game
-import com.example.mygamingdatabase.models.gameList
-import com.example.mygamingdatabase.models.statusDescriptions
+import com.example.mygamingdatabase.data.models.Game
+import com.example.mygamingdatabase.data.models.gameList
+import com.example.mygamingdatabase.data.models.statusDescriptions
 import com.example.mygamingdatabase.ui.components.AlarmReminderDialog
 import com.example.mygamingdatabase.ui.components.MaintenanceDropdownMenu
 import com.example.mygamingdatabase.ui.components.MaintenanceItemDialog
+import com.example.mygamingdatabase.viewmodel.GameViewModel
+import com.example.mygamingdatabase.viewmodel.GameViewModelFactory
 import com.google.accompanist.web.rememberWebViewState
 import com.google.accompanist.web.WebView
 import kotlinx.coroutines.delay
@@ -166,18 +170,22 @@ fun MainInfoSection(game: Game) {
 
                 // Informações principais
                 Column(modifier = Modifier.padding(end = 24.dp)) {
-                    Text(
-                        text = game.name,
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = Color.White,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = game.releaseDate,
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
+                    game.name?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            color = Color.White,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    game.releaseDate?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -456,18 +464,21 @@ fun ActionButtonsSection(game: Game) {
 
 @ExperimentalMaterial3Api
 @Composable
-fun GameDetailsScreen (gameId : String) {
-    val game = gameList.find { it.id.toString() == gameId } // Using the updated list
+fun GameDetailsScreen (gameId : String, context: Context = LocalContext.current) {
+    val viewModel: GameViewModel = viewModel(factory = GameViewModelFactory(context))
+    val game = viewModel.games.value.find { it.id == gameId.toInt() }
     var isLoading by remember { mutableStateOf(true) }
 
     // Simula o carregamento dos dados. Usar um ViewModel ou outra lógica de carregamento posteriormente.
-    LaunchedEffect(Unit) {
-        delay(1000) // Simulando um tempo de carregamento (2 segundos e meio)
+    LaunchedEffect(gameId) {
+        isLoading = true
+        viewModel.fetchGameById(gameId.toInt())
+        delay(1000) // Simula um atraso de 1 segundo
         isLoading = false
     }
 
     if(isLoading) {
-        LoadingIndicator(isLoading)
+        LoadingIndicator()
     } else {
         game?.let {
             Column(
@@ -531,10 +542,12 @@ fun GameDetailsScreen (gameId : String) {
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Text(
-                            text = game.description,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                        game.description?.let { it1 ->
+                            Text(
+                                text = it1,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
                     }
                 }
 

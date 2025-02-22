@@ -1,4 +1,4 @@
-package com.example.mygamingdatabase.ui.screens
+package com.example.mygamingdatabase.ui.view
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column

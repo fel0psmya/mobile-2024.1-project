@@ -1,4 +1,4 @@
-package com.example.mygamingdatabase.ui.screens
+package com.example.mygamingdatabase.ui.view
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -52,9 +52,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import coil.compose.rememberAsyncImagePainter
-import com.example.mygamingdatabase.models.Game
-import com.example.mygamingdatabase.models.gameList
-import com.example.mygamingdatabase.models.statusDescriptions
+import com.example.mygamingdatabase.data.models.Game
+import com.example.mygamingdatabase.data.models.gameList
+import com.example.mygamingdatabase.data.models.statusDescriptions
 import com.example.mygamingdatabase.ui.components.MaintenanceDropdownMenu
 import com.example.mygamingdatabase.ui.components.MaintenanceItemDialog
 
@@ -233,13 +233,15 @@ fun GameCard(game: Game, isFavorite: Boolean, navController: NavHostController) 
                 .padding(8.dp)
             ) {
                 Column (modifier = Modifier.fillMaxHeight()) {
-                    Text(
-                        text = game.name,
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    game.name?.let {
+                        Text(
+                            text = it,
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                     Text(
                         text = if (game.userScore != null) "Nota: ${game.userScore}" else "",
                         color = Color.White,

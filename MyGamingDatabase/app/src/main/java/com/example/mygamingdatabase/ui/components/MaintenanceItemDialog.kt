@@ -35,9 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
-import com.example.mygamingdatabase.models.Game
-import com.example.mygamingdatabase.models.scoreDescriptions
-import com.example.mygamingdatabase.models.statusDescriptions
+import com.example.mygamingdatabase.data.models.Game
+import com.example.mygamingdatabase.data.models.scoreDescriptions
+import com.example.mygamingdatabase.data.models.statusDescriptions
 
 @OptIn(UnstableApi::class)
 @Composable

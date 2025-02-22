@@ -1,4 +1,4 @@
-package com.example.mygamingdatabase.models
+package com.example.mygamingdatabase.data.models
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -6,12 +6,12 @@ import com.example.mygamingdatabase.R
 
 data class Game(
     val id: Int,  // Unique ID from the game
-    val name: String,  // Game name
-    val imageUrl: String,  // Game cover URL
+    val name: String?,  // Game name
+    val imageUrl: String?,  // Game cover URL
     val trailerUrl: String?, // Trailer URL
-    val description: String,  // Game description
+    val description: String?,  // Game description
     val platforms: List<String>?,  // Game platforms
-    val releaseDate: String,  // Release year
+    val releaseDate: String?,  // Release year
     val screenshots: List<String>?,  // Screenshots URLs
     val isFavorite: MutableState<Boolean>, // If the game is favorite
     val isAddedToList: MutableState<Boolean>,
@@ -286,5 +286,27 @@ val gameList = listOf(
         userScore = null,
         status = GameStatus.PLANNING_TO_PLAY,
         artworkUrl = "https://images.igdb.com/igdb/image/upload/t_720p/ar38va.webp"
+    ),
+    Game (
+        id = 11,
+        name = "Persona 3 Reload",
+        imageUrl = "https://images.igdb.com/igdb/image/upload/t_cover_big/co6z12.webp",
+        trailerUrl = "https://www.youtube.com/watch?v=4py4V5xwXWE",
+        description = "Step into the shoes of a transfer student thrust into an unexpected fate when entering the hour \"hidden\" between one day and the next. Awaken an incredible power and chase the mysteries of the Dark Hour, fight for your friends, and leave a mark on their memories forever.\n" +
+                "\n" +
+                "Persona 3 Reload is a captivating reimagining of the genre-defining RPG, reborn for the modern era.",
+        platforms = listOf("PC (Microsoft Windows)", "Playstation 4", "Playstation 5", "Xbox One", "Xbox Series X|S"),
+        releaseDate = "2024",
+        screenshots = listOf("https://images.igdb.com/igdb/image/upload/t_720p/scmww8.webp",
+            "https://images.igdb.com/igdb/image/upload/t_720p/sco1d3.webp",
+            "https://images.igdb.com/igdb/image/upload/t_720p/sco1d4.webp",
+            "https://images.igdb.com/igdb/image/upload/t_720p/sco1d8.webp",
+            "https://images.igdb.com/igdb/image/upload/t_720p/sco1da.webp"),
+        isFavorite = mutableStateOf(false),
+        isAddedToList = mutableStateOf(false),
+        isReminded = mutableStateOf(false),
+        userScore = null,
+        status = GameStatus.PLANNING_TO_PLAY,
+        artworkUrl = "https://images.igdb.com/igdb/image/upload/t_720p/ar2gyi.webp"
     )
 )
