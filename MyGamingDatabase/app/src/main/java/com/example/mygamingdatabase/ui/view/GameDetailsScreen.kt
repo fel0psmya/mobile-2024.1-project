@@ -2,6 +2,7 @@ package com.example.mygamingdatabase.ui.view
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -293,12 +294,18 @@ fun MainInfoSection(game: Game) {
 }
 
 @Composable
-fun ActionButtonsSection(game: Game) {
+fun ActionButtonsSection(
+    game: Game,
+    isFavorite: Boolean,
+    userId: String?,
+    viewModel: GameViewModel
+) {
     var selectedGameId by remember { mutableStateOf<Int?>(null) }
     var dropdownExpandedByGameId by remember { mutableStateOf<Int?>(null) }
 
     var showRemoveFavoriteDialog by remember { mutableStateOf(false) }
     var gameToRemoveFromFavorites by remember { mutableStateOf<Int?>(null) }
+    var localIsFavorite by remember { mutableStateOf(isFavorite) }
 
     // Mostrar o diálogo de manutenção do item
     if (selectedGameId == game.id) {
@@ -318,11 +325,11 @@ fun ActionButtonsSection(game: Game) {
 
     // Botão de favoritos
     val favBackgroundColor by animateColorAsState(
-        targetValue =  if (game.isFavorite.value) MaterialTheme.colorScheme.primary else Color.Transparent, // Alterando entre cor de destaque e transparente
+        targetValue =  if (localIsFavorite) MaterialTheme.colorScheme.primary else Color.Transparent, // Alterando entre cor de destaque e transparente
         animationSpec = tween(durationMillis = 400) // Duração da animação
     )
     val favTextColor by animateColorAsState(
-        targetValue =  if (game.isFavorite.value) Color.White else MaterialTheme.colorScheme.primary,
+        targetValue =  if (localIsFavorite) Color.White else MaterialTheme.colorScheme.primary,
         animationSpec = tween(durationMillis = 400)
     )
     Row (
@@ -340,24 +347,27 @@ fun ActionButtonsSection(game: Game) {
                 favBackgroundColor
             )
             .clickable {
-                if (!game.isFavorite.value) {
-                    game.isFavorite.value = !game.isFavorite.value
-                } else {
-                    gameToRemoveFromFavorites = game.id
-                    showRemoveFavoriteDialog = true
+                if (userId != null) {
+                    if (!localIsFavorite) {
+                        viewModel.salvarJogoFavorito(userId, game)
+                        localIsFavorite = true
+                    } else {
+                        gameToRemoveFromFavorites = game.id
+                        showRemoveFavoriteDialog = true
+                    }
                 }
             },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
         Icon(
-            imageVector = if (game.isFavorite.value) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+            imageVector = if (localIsFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
             contentDescription = "Favorite",
             tint = favTextColor
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = if (game.isFavorite.value) "Favorito" else "Favoritar",
+            text = if (localIsFavorite) "Favorito" else "Favoritar",
             color = favTextColor,
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.align(Alignment.CenterVertically)
@@ -444,7 +454,8 @@ fun ActionButtonsSection(game: Game) {
                 TextButton(
                     onClick = {
                         showRemoveFavoriteDialog = false
-                        game.isFavorite.value = !game.isFavorite.value
+                        viewModel.removerJogoFavorito(userId!!, game.id)
+                        localIsFavorite = false
                     }
                 ) {
                     Text("Confirmar")
@@ -471,10 +482,24 @@ fun GameDetailsScreen (gameId : String, context: Context = LocalContext.current)
     val game = viewModel.games.value.find { it.id == gameId.toInt() }
     var isLoading by remember { mutableStateOf(true) }
 
+    var isFavorite by remember { mutableStateOf(false) }
+    var userId by remember { mutableStateOf<String?>(null) }
+
+
     // Simula o carregamento dos dados. Usar um ViewModel ou outra lógica de carregamento posteriormente.
     LaunchedEffect(gameId) {
         isLoading = true
         viewModel.fetchGameById(gameId.toInt())
+        if(viewModel.isUserLogged()) {
+            viewModel.getUserId { id ->
+                if (id != null) {
+                    userId = id
+                    viewModel.isGameFavorite(id, gameId.toInt()) { favorite ->
+                        isFavorite = favorite
+                    }
+                }
+            }
+        }
         delay(1000) // Simula um atraso de 1 segundo
         isLoading = false
     }
@@ -494,7 +519,7 @@ fun GameDetailsScreen (gameId : String, context: Context = LocalContext.current)
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Seção 2: Botão de Favorito e Botão de Adicionar à Lista
-                ActionButtonsSection(game)
+                ActionButtonsSection(game, isFavorite, userId, viewModel)
 
                 Spacer(modifier = Modifier.height(24.dp))
 

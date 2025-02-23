@@ -47,7 +47,9 @@ class GameRepository {
     // Login com email e senha
     suspend fun loginUser(email: String, password: String): Boolean {
         return try {
+            Log.d("GameRepository", "Attempting to log in with email: $email")
             auth.signInWithEmailAndPassword(email, password).await()
+            Log.d("GameRepository", "Login successful")
             true
         } catch (e: Exception) {
             Log.e("GameRepository", "Erro no login: ${e.message}")
@@ -76,6 +78,15 @@ class GameRepository {
             }
         } catch (e: Exception) {
             Log.e("GameRepository", "Erro ao buscar nome do usuário: ${e.message}")
+            null
+        }
+    }
+
+    fun getUserId(): String? {
+        return try {
+            return auth.currentUser?.uid
+        } catch (e: Exception) {
+            Log.e("GameRepository", "Erro ao buscar ID do usuário: ${e.message}")
             null
         }
     }
@@ -130,8 +141,11 @@ class GameRepository {
 
     // Verifica se o usuário está logado
     fun isUserLogged(): Boolean {
-        return auth.currentUser != null
+        val isLogged = auth.currentUser != null
+        Log.d("GameRepository", "User logged: $isLogged, ${auth.currentUser?.uid}")
+        return isLogged
     }
+
     // Inicializa os dados do usuário no Realtime Database
     private fun initializeUserData(userId: String) {
         val userRef = realtimeDatabase.reference.child("users").child(userId)

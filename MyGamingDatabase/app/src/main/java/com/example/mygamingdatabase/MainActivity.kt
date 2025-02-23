@@ -31,7 +31,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.mygamingdatabase.data.GameRepository
-import com.example.mygamingdatabase.data.RetrofitInstance
 import com.example.mygamingdatabase.viewmodel.GameViewModel
 import com.example.mygamingdatabase.viewmodel.GameViewModelFactory
 import com.example.mygamingdatabase.ui.theme.MyGamingDatabaseTheme
@@ -98,12 +97,7 @@ class MainActivity : ComponentActivity() {
                         if (!listOf("login", "forgot", "register").contains(currentRoute?.destination?.route)) {
                             DrawerContent(
                                 viewModel,
-                                navController,
-                                isLogged,
-                                onLogout = {
-                                    isLogged = false
-                                    scope.launch { drawerState.close() }
-                                }
+                                navController
                             ) {
                                 scope.launch { drawerState.close() }
                             }
@@ -133,7 +127,7 @@ class MainActivity : ComponentActivity() {
                         ) { innerPadding ->
                             NavHost(
                                 navController = navController,
-                                startDestination = "login",
+                                startDestination = if(!viewModel.isUserLogged()) "login" else "home",
                                 modifier = Modifier.padding(innerPadding)
                             ) {
                                 composable(
@@ -164,7 +158,7 @@ class MainActivity : ComponentActivity() {
                                     enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
                                     exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) }
                                 ) {
-                                    ProfileScreen(viewModel, navController, isLogged)
+                                    ProfileScreen(viewModel, navController)
                                 }
                                 composable(
                                     "home",

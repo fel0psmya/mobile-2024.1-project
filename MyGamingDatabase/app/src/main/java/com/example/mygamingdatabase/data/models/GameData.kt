@@ -32,7 +32,27 @@ data class Game(
     val rating: Double?,  // IGDB game note
 
      */
-)
+) {
+    // No-argument constructor for Firebase
+    constructor() : this(
+        id = 0,
+        name = null,
+        imageUrl = null,
+        trailerUrl = null,
+        description = null,
+        platforms = null,
+        releaseDate = null,
+        screenshots = null,
+        isFavorite = mutableStateOf(false),
+        isAddedToList = mutableStateOf(false),
+        isReminded = mutableStateOf(false),
+        reminderTime = mutableStateOf(""),
+        reminderDays = mutableStateOf(""),
+        userScore = null,
+        status = GameStatus.PLANNING_TO_PLAY,
+        artworkUrl = null
+    )
+}
 
 enum class GameStatus {
     PLANNING_TO_PLAY, // Pretendo Jogar

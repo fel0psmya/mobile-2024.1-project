@@ -50,8 +50,6 @@ import com.example.mygamingdatabase.viewmodel.GameViewModel
 fun DrawerContent(
     viewModel: GameViewModel,
     navController: NavHostController,
-    isLogged: Boolean,
-    onLogout : () -> Unit,
     onCloseDrawer: () -> Unit
 ) {
     val context = LocalContext.current
@@ -59,7 +57,7 @@ fun DrawerContent(
 
     var showExitDialog by remember { mutableStateOf(false) }
 
-    if (showExitDialog && isLogged) {
+    if (showExitDialog && viewModel.isUserLogged()) {
         AlertDialog(
             onDismissRequest = { showExitDialog = false },
             confirmButton = {
@@ -67,7 +65,6 @@ fun DrawerContent(
                     onClick = {
                         onCloseDrawer()
                         showExitDialog = false
-                        onLogout()
                         viewModel.logout()
                         Toast.makeText(context, "Você saiu. Até mais!", Toast.LENGTH_SHORT).show()
                         navController.navigate("login") {
@@ -172,12 +169,12 @@ fun DrawerContent(
             HorizontalDivider(modifier = Modifier.width(330.dp).align(Alignment.CenterHorizontally).padding(vertical = 12.dp))
 
             DrawerMenuItem(
-                label = if (isLogged) "Sair" else "Login",
-                icon = if (isLogged) Icons.Default.Logout else Icons.Default.Login,
+                label = if (viewModel.isUserLogged()) "Sair" else "Login",
+                icon = if (viewModel.isUserLogged()) Icons.Default.Logout else Icons.Default.Login,
                 route = "login",
                 currentRoute = currentDestination,
                 onClick = {
-                    if (isLogged) {
+                    if (viewModel.isUserLogged()) {
                         showExitDialog = true
                     } else {
                         navController.navigate("login") {

@@ -22,7 +22,6 @@
 
         <receiver android:name="com.example.mygamingdatabase.AlarmReceiver" android:exported="true" />
 
-
         <activity
             android:name=".MainActivity"
             android:exported="true"

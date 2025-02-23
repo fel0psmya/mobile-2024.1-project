@@ -101,6 +101,10 @@ fun HomeScreen(
     var showRemoveFavoriteDialog by remember { mutableStateOf(false) }
     var gameToRemoveFromFavorites by remember { mutableStateOf<Int?>(null) }
 
+    var userId by remember { mutableStateOf("Carregando...") }
+    var favoriteGameIds by remember { mutableStateOf<List<Int>>(emptyList()) }
+
+
     val games by viewModel.games
     val filteredGames = remember(games, searchQuery) {
         games.filter { it.name?.contains(searchQuery, ignoreCase = true) ?: false }
@@ -121,6 +125,17 @@ fun HomeScreen(
     LaunchedEffect(Unit) {
         isLoading = true
         viewModel.fetchGames()
+        if (viewModel.isUserLogged()) {
+            viewModel.getUserId { id ->
+                if (id != null) {
+                    Log.d("HomeScreen", "User ID: $id")
+                    userId = id
+                    viewModel.carregarJogosFavoritos(id) { favoriteIds ->
+                        favoriteGameIds = favoriteIds
+                    }
+                }
+            }
+        }
         delay(1000)
         isLoading = false
     }
@@ -184,17 +199,16 @@ fun HomeScreen(
                                             game.userScore = updatedGame.userScore
                                             if (!game.isAddedToList.value) {
                                                 game.isAddedToList.value = true
+
+                                                // TODO
+                                                // viewModel.salvarJogoNaLista(viewModel.getUserId(), game)
+
                                                 coroutineScope.launch {
                                                     val result = snackbarHostState.showSnackbar(
                                                         message = "${game.name} foi adicionado à sua lista!",
                                                         duration = SnackbarDuration.Short,
                                                         withDismissAction = true
                                                     )
-
-                                                    /*
-                                            if (result == SnackbarResult.ActionPerformed) {
-                                                navController.navigate("lista/minha_lista")
-                                            } */
                                                 }
 
                                                 if (game.status == GameStatus.PLANNING_TO_PLAY || game.status == GameStatus.PLAYING) {
@@ -327,43 +341,49 @@ fun HomeScreen(
                                                 animationSpec = tween(durationMillis = 150) // Duração do efeito de "pop"
                                             )
                                             Icon(
-                                                imageVector = if (game.isFavorite.value) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                                imageVector = if (favoriteGameIds.contains(game.id)) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                                                 contentDescription = "Favorite",
                                                 tint = MaterialTheme.colorScheme.primary,
                                                 modifier = Modifier
                                                     .size(24.dp)
                                                     .scale(scale)
                                                     .clickable {
-                                                        if (!game.isFavorite.value) {
-                                                            game.isFavorite.value =
-                                                                !game.isFavorite.value
-                                                            coroutineScope.launch {
-                                                                val result =
-                                                                    snackbarHostState.showSnackbar(
-                                                                        message = "${game.name} foi adicionado aos favoritos!",
-                                                                        // actionLabel = "VER",
-                                                                        duration = SnackbarDuration.Short,
-                                                                        withDismissAction = true
-                                                                    )
-                                                                /*
-                                                               if (result == SnackbarResult.ActionPerformed) {
-                                                               navController.navigate("lista/favoritos")
-                                                            } */
-                                                            }
+                                                        // TODO
+                                                        if(viewModel.isUserLogged()) {
+                                                            if (!favoriteGameIds.contains(game.id)) {
+                                                                viewModel.salvarJogoFavorito(userId, game)
+                                                                favoriteGameIds = favoriteGameIds + game.id
 
-                                                            // Dispara a animação de "pop" apenas quando o jogo for adicionado aos favoritos
-                                                            isPressed.value = true
+                                                                coroutineScope.launch {
+                                                                    val result =
+                                                                        snackbarHostState.showSnackbar(
+                                                                            message = "${game.name} foi adicionado aos favoritos!",
+                                                                            // actionLabel = "VER",
+                                                                            duration = SnackbarDuration.Short,
+                                                                            withDismissAction = true
+                                                                        )
+                                                                }
 
-                                                            // Reseta o estado de pressionado após o efeito de "pop"
-                                                            coroutineScope.launch {
-                                                                delay(150) // Tempo do efeito de pop
-                                                                isPressed.value = false
+                                                                // Dispara a animação de "pop" apenas quando o jogo for adicionado aos favoritos
+                                                                isPressed.value = true
+
+                                                                // Reseta o estado de pressionado após o efeito de "pop"
+                                                                coroutineScope.launch {
+                                                                    delay(150) // Tempo do efeito de pop
+                                                                    isPressed.value = false
+                                                                }
+                                                            } else {
+                                                                gameToRemoveFromFavorites = game.id
+                                                                showRemoveFavoriteDialog = true
                                                             }
                                                         } else {
-                                                            gameToRemoveFromFavorites = game.id
-                                                            showRemoveFavoriteDialog = true
+                                                            coroutineScope.launch {
+                                                                snackbarHostState.showSnackbar(
+                                                                    message = "Você precisa estar logado para adicionar aos favoritos.",
+                                                                    duration = SnackbarDuration.Short
+                                                                )
+                                                            }
                                                         }
-
                                                     }
                                             )
                                         }
@@ -415,11 +435,19 @@ fun HomeScreen(
                                                 )
                                                 .background(backgroundColor)
                                                 .clickable {
-                                                    if (game.isAddedToList.value) {
-                                                        dropdownExpandedByGameId =
-                                                            game.id // Alterna o valor do dropdown
+                                                    if (viewModel.isUserLogged()) {
+                                                        if (game.isAddedToList.value) {
+                                                            dropdownExpandedByGameId = game.id // Alterna o valor do dropdown
+                                                        } else {
+                                                            selectedGameId = game.id
+                                                        }
                                                     } else {
-                                                        selectedGameId = game.id
+                                                        coroutineScope.launch {
+                                                            snackbarHostState.showSnackbar(
+                                                                message = "Você precisa estar logado para adicionar à lista.",
+                                                                duration = SnackbarDuration.Short
+                                                            )
+                                                        }
                                                     }
                                                 },
                                             verticalAlignment = Alignment.CenterVertically,
@@ -454,6 +482,8 @@ fun HomeScreen(
                                                     onRemove = {
                                                         dropdownExpandedByGameId = null
                                                         game.isAddedToList.value = false
+                                                        // TODO
+                                                        // viewModel.removerJogoDaLista(viewModel.getUserId(), game.id)
                                                         coroutineScope.launch {
                                                             val result =
                                                                 snackbarHostState.showSnackbar(
@@ -464,6 +494,8 @@ fun HomeScreen(
                                                                 )
                                                             if (result == SnackbarResult.ActionPerformed) {
                                                                 game.isAddedToList.value = true
+                                                                // TODO
+                                                                // viewModel.salvarJogoNaLista(viewModel.getUserId(), game)
                                                             }
                                                         }
                                                     }
@@ -486,8 +518,9 @@ fun HomeScreen(
                                                     TextButton(
                                                         onClick = {
                                                             showRemoveFavoriteDialog = false
-                                                            game.isFavorite.value =
-                                                                !game.isFavorite.value
+                                                            viewModel.removerJogoFavorito(userId, game.id)
+                                                            favoriteGameIds = favoriteGameIds - game.id
+
                                                             coroutineScope.launch {
                                                                 val result =
                                                                     snackbarHostState.showSnackbar(
@@ -497,7 +530,8 @@ fun HomeScreen(
                                                                         withDismissAction = true
                                                                     )
                                                                 if (result == SnackbarResult.ActionPerformed) {
-                                                                    game.isFavorite.value = true
+                                                                    viewModel.salvarJogoFavorito(userId, game)
+                                                                    favoriteGameIds = favoriteGameIds + game.id
                                                                 }
                                                             }
                                                         }

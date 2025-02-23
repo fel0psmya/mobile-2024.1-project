@@ -1,5 +1,8 @@
 package com.example.mygamingdatabase.ui.view
 
+import android.content.Context
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -37,9 +40,11 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -49,129 +54,184 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import com.example.app.ui.components.LoadingIndicator
+import com.example.mygamingdatabase.data.GameRepository
 import com.example.mygamingdatabase.data.models.Game
-import com.example.mygamingdatabase.data.models.gameList
 import com.example.mygamingdatabase.data.models.statusDescriptions
 import com.example.mygamingdatabase.ui.components.MaintenanceDropdownMenu
 import com.example.mygamingdatabase.ui.components.MaintenanceItemDialog
+import com.example.mygamingdatabase.viewmodel.GameViewModel
+import com.example.mygamingdatabase.viewmodel.GameViewModelFactory
+import kotlinx.coroutines.delay
 
 @Composable
-fun ListsScreen(navController: NavHostController){
+fun ListsScreen(
+    navController: NavHostController,
+    context: Context = LocalContext.current,
+    repository: GameRepository = GameRepository()
+){
+    val viewModel: GameViewModel = viewModel(
+        factory = GameViewModelFactory(context, repository)
+    )
+
+    val games by viewModel.games
+    var userId by remember { mutableStateOf("Carregando...") }
+    var favoriteGames by remember { mutableStateOf<List<Game>>(emptyList()) }
+    var gameList by remember { mutableStateOf<List<Game>>(emptyList()) }
+
     var selectedTab by remember { mutableIntStateOf(0) } // 0: Favoritos, 1: Minha Lista
     var selectedStatus by remember { mutableStateOf<String?>(null) }
 
-    val favoriteGames = gameList.filter { it.isFavorite.value }
-    val myListGames = gameList.filter {
-        it.isAddedToList.value && (selectedStatus == null || statusDescriptions[it.status] == selectedStatus)
-    }
+    var isLoading by remember { mutableStateOf(true) }
 
-    var dropdownExpanded by remember { mutableStateOf(false) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        // TabRow
-        TabRow(selectedTabIndex = selectedTab, modifier = Modifier.fillMaxWidth()) {
-            Tab(
-                selected = selectedTab == 0,
-                onClick = { selectedTab = 0 },
-                text = { Text("Favoritos") }
-            )
-            Tab(
-                selected = selectedTab == 1,
-                onClick = { selectedTab = 1 },
-                text = { Text("Minha Lista") }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (selectedTab == 1) {
-            // Botão que, ao ser clicado, abre um dropdown menu para selecionar filtrar a lista por status
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-                    .clip(RoundedCornerShape(8.dp)) // Define as bordas arredondadas
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .clickable {
-                        dropdownExpanded = true
-                    },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
-            ){
-                Icon(
-                    imageVector = Icons.Filled.FilterList,
-                    contentDescription = "Filtrar",
-                    modifier = Modifier
-                        .padding(8.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = selectedStatus ?: "Filtrar por status",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                DropdownMenu(
-                    expanded = dropdownExpanded,
-                    onDismissRequest = { dropdownExpanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Todos") },
-                        onClick = {
-                            selectedStatus = null
-                            dropdownExpanded = false
+    LaunchedEffect(Unit) {
+        isLoading = true
+        viewModel.fetchGames()
+        Log.d("ListsScreen", "Games loaded: $games")
+        if (viewModel.isUserLogged()) {
+            viewModel.getUserId { id ->
+                if (id != null) {
+                    Log.d("ListsScreen", "User ID: $id")
+                    userId = id
+                    viewModel.carregarJogosFavoritos(id) { favoriteIds ->
+                        Log.d("ListsScreen", "Favorite Game IDs: $favoriteIds")
+                        viewModel.fetchGamesByIds(favoriteIds) { fetchedGames ->
+                            favoriteGames = fetchedGames
+                            Log.d("ListsScreen", "Favorite Games: $favoriteGames")
                         }
-                    )
-                    statusDescriptions.forEach { status ->
-                        DropdownMenuItem(
-                            text = { Text(status.value) },
-                            onClick = {
-                                selectedStatus = status.value
-                                dropdownExpanded = false
-                            }
-                        )
                     }
                 }
             }
         }
+        delay(1000)
+        isLoading = false
+    }
 
-        // LazyVerticalGrid para exibir 2 jogos por linha
-        LazyVerticalGrid (
-            columns = GridCells.Fixed(2),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+    var dropdownExpanded by remember { mutableStateOf(false) }
+
+    if (isLoading) {
+        LoadingIndicator()
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
-            val gamesToDisplay = if (selectedTab == 0) favoriteGames else myListGames
+            // TabRow
+            TabRow(selectedTabIndex = selectedTab, modifier = Modifier.fillMaxWidth()) {
+                Tab(
+                    selected = selectedTab == 0,
+                    onClick = { selectedTab = 0 },
+                    text = { Text("Favoritos") }
+                )
+                Tab(
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1 },
+                    text = { Text("Minha Lista") }
+                )
+            }
 
-            // Exibe os jogos se houver
-            if (gamesToDisplay.isNotEmpty()) {
-                items(gamesToDisplay) { game ->
-                    GameCard(game = game, isFavorite = selectedTab == 0, navController = navController)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (selectedTab == 1) {
+                // Botão que, ao ser clicado, abre um dropdown menu para selecionar filtrar a lista por status
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                        .clip(RoundedCornerShape(8.dp)) // Define as bordas arredondadas
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .clickable {
+                            dropdownExpanded = true
+                        },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.FilterList,
+                        contentDescription = "Filtrar",
+                        modifier = Modifier
+                            .padding(8.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = selectedStatus ?: "Filtrar por status",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    DropdownMenu(
+                        expanded = dropdownExpanded,
+                        onDismissRequest = { dropdownExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Todos") },
+                            onClick = {
+                                selectedStatus = null
+                                dropdownExpanded = false
+                            }
+                        )
+                        statusDescriptions.forEach { status ->
+                            DropdownMenuItem(
+                                text = { Text(status.value) },
+                                onClick = {
+                                    selectedStatus = status.value
+                                    dropdownExpanded = false
+                                }
+                            )
+                        }
+                    }
                 }
             }
-        }
 
-        if (selectedTab == 0 && favoriteGames.isEmpty() || selectedTab == 1 && myListGames.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
+            // LazyVerticalGrid para exibir 2 jogos por linha
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = if (selectedTab == 0) "Você ainda não tem jogos favoritos." else "Sua lista está vazia.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center // Garante alinhamento central do texto
-                )
+                val gamesToDisplay = if (selectedTab == 0) favoriteGames else gameList
+
+                // Exibe os jogos se houver
+                if (gamesToDisplay.isNotEmpty()) {
+                    items(gamesToDisplay) { game ->
+                        GameCard(
+                            game = game,
+                            isFavorite = selectedTab == 0,
+                            onRemoveFavorite = { gameId ->
+                                // TODO: Feedback visual
+                                favoriteGames = favoriteGames.filter { it.id != gameId }
+                                Toast.makeText(context, "${game.name} foi removido dos seus favoritos", Toast.LENGTH_SHORT).show()
+                                viewModel.removerJogoFavorito(userId, gameId)
+                            },
+                            navController = navController,
+                            viewModel = viewModel,
+                            userId = userId
+                        )
+                    }
+                }
+            }
+
+            if (selectedTab == 0 && favoriteGames.isEmpty() || selectedTab == 1 && gameList.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (selectedTab == 0) "Você ainda não tem jogos favoritos." else "Sua lista está vazia.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center // Garante alinhamento central do texto
+                    )
+                }
             }
         }
     }
@@ -180,7 +240,14 @@ fun ListsScreen(navController: NavHostController){
 }
 
 @Composable
-fun GameCard(game: Game, isFavorite: Boolean, navController: NavHostController) {
+fun GameCard(
+    game: Game,
+    isFavorite: Boolean,
+    onRemoveFavorite: (Int) -> Unit,
+    navController: NavHostController,
+    viewModel: GameViewModel,
+    userId: String
+) {
     var selectedGameId by remember { mutableStateOf<Int?>(null) }
     var dropdownExpandedByGameId by remember { mutableStateOf<Int?>(null) }
     var showRemoveFavoriteDialog by remember { mutableStateOf(false) }
@@ -312,7 +379,7 @@ fun GameCard(game: Game, isFavorite: Boolean, navController: NavHostController) 
                         TextButton(
                             onClick = {
                                 showRemoveFavoriteDialog = false
-                                game.isFavorite.value = !game.isFavorite.value
+                                onRemoveFavorite(game.id)
                             }
                         ) {
                             Text("Confirmar")
