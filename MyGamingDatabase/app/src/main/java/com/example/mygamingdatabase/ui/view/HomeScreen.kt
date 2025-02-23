@@ -39,8 +39,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DrawerState
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -66,21 +64,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
-import com.example.mygamingdatabase.data.models.gameList
 import com.example.mygamingdatabase.ui.components.MaintenanceDropdownMenu
 import com.example.mygamingdatabase.ui.components.MaintenanceItemDialog
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.app.ui.components.LoadingIndicator
+import com.example.mygamingdatabase.ui.components.LoadingIndicator
 import com.example.mygamingdatabase.data.models.Game
 import com.example.mygamingdatabase.data.models.GameStatus
+import com.example.mygamingdatabase.isInternetAvailable
+import com.example.mygamingdatabase.ui.components.NetworkWarning
 import com.example.mygamingdatabase.viewmodel.GameViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -93,6 +91,8 @@ fun HomeScreen(
     viewModel: GameViewModel = viewModel(),
     onGameSelected: (Game) -> Unit,
 ) {
+    var isConnected by remember { mutableStateOf(true) }
+
     var searchQuery by remember { mutableStateOf("") }
     var expandedImageUrl by remember { mutableStateOf<String?>(null) } // To store expanded image's URL
 
@@ -119,25 +119,28 @@ fun HomeScreen(
     var selectedGameIdForReminder by remember { mutableStateOf<Int?>(null) } // Identifica qual jogo requer o lembrete
     var doNotAskAgain by remember { mutableStateOf(false) }
 
-    var isLoading by remember { mutableStateOf(true) }
+    var isLoading by remember { mutableStateOf(false) }
 
     // Fetch games
     LaunchedEffect(Unit) {
-        isLoading = true
-        viewModel.fetchGames()
-        if (viewModel.isUserLogged()) {
-            viewModel.getUserId { id ->
-                if (id != null) {
-                    Log.d("HomeScreen", "User ID: $id")
-                    userId = id
-                    viewModel.carregarJogosFavoritos(id) { favoriteIds ->
-                        favoriteGameIds = favoriteIds
+        isConnected = isInternetAvailable(context)
+        if(isConnected) {
+            isLoading = true
+            viewModel.fetchGames()
+            if (viewModel.isUserLogged()) {
+                viewModel.getUserId { id ->
+                    if (id != null) {
+                        Log.d("HomeScreen", "User ID: $id")
+                        userId = id
+                        viewModel.carregarJogosFavoritos(id) { favoriteIds ->
+                            favoriteGameIds = favoriteIds
+                        }
                     }
                 }
             }
+            delay(1000)
+            isLoading = false
         }
-        delay(1000)
-        isLoading = false
     }
 
     Scaffold(
@@ -168,6 +171,8 @@ fun HomeScreen(
             // LazyColumn to Filtered Games List
             if (isLoading) {
                 LoadingIndicator()
+            } else if (!isConnected) {
+                NetworkWarning()
             } else {
                 LazyColumn {
                     items(filteredGames) { game ->

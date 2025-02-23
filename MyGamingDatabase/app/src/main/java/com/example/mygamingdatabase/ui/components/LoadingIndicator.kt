@@ -1,4 +1,4 @@
-package com.example.app.ui.components
+package com.example.mygamingdatabase.ui.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

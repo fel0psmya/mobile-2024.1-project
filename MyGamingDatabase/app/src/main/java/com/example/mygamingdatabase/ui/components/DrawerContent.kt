@@ -31,6 +31,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.mygamingdatabase.isInternetAvailable
 import com.example.mygamingdatabase.viewmodel.GameViewModel
 
 @Composable
@@ -54,6 +56,11 @@ fun DrawerContent(
 ) {
     val context = LocalContext.current
     val currentDestination = navController.currentBackStackEntryAsState().value?.destination?.route
+
+    var isConnected by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        isConnected = isInternetAvailable(context)
+    }
 
     var showExitDialog by remember { mutableStateOf(false) }
 
@@ -174,13 +181,17 @@ fun DrawerContent(
                 route = "login",
                 currentRoute = currentDestination,
                 onClick = {
-                    if (viewModel.isUserLogged()) {
-                        showExitDialog = true
-                    } else {
-                        navController.navigate("login") {
-                            popUpTo("home") { inclusive = true }
+                    if(isConnected) {
+                        if (viewModel.isUserLogged()) {
+                            showExitDialog = true
+                        } else {
+                            navController.navigate("login") {
+                                popUpTo("home") { inclusive = true }
+                            }
+                            onCloseDrawer()
                         }
-                        onCloseDrawer()
+                    } else {
+                        Toast.makeText(context, "Por favor, conecte-se antes de entrar ou sair de sua conta", Toast.LENGTH_LONG).show()
                     }
                 }
             )

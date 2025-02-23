@@ -22,14 +22,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.example.app.ui.components.LoadingIndicator
+import com.example.mygamingdatabase.ui.components.LoadingIndicator
 import com.example.mygamingdatabase.R
-import com.example.mygamingdatabase.data.GameRepository
 import com.example.mygamingdatabase.data.models.Game
+import com.example.mygamingdatabase.isInternetAvailable
+import com.example.mygamingdatabase.ui.components.NetworkWarning
 import com.example.mygamingdatabase.viewmodel.GameViewModel
 import kotlinx.coroutines.delay
 
@@ -38,6 +38,9 @@ fun ProfileScreen(
     viewModel: GameViewModel,
     navController: NavController
 ) {
+    val context = LocalContext.current
+    var isConnected by remember { mutableStateOf(true) }
+
     val profileImage by remember { mutableStateOf<Painter?>(null) }
     var userName by remember { mutableStateOf("Carregando...") }
     var userId by remember { mutableStateOf("") }
@@ -46,34 +49,40 @@ fun ProfileScreen(
     var favoriteGames by remember { mutableStateOf<List<Game>>(emptyList()) }
     var gameList by remember { mutableStateOf<List<Game>>(emptyList()) }
 
-    var isLoading by remember { mutableStateOf(true) }
+    var isLoading by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        isLoading = true
-        viewModel.fetchGames()
-        if (viewModel.isUserLogged()) {
-            viewModel.getUserName { name ->
-                userName = name ?: "Usuário"
-            }
-            viewModel.getUserId { id ->
-                if (id != null) {
-                    userId = id
-                    viewModel.carregarJogosFavoritos(id) { favoriteIds ->
-                        Log.d("ListsScreen", "Favorite Game IDs: $favoriteIds")
-                        viewModel.fetchGamesByIds(favoriteIds) { fetchedGames ->
-                            favoriteGames = fetchedGames
-                            Log.d("ListsScreen", "Favorite Games: $favoriteGames")
+        isConnected = isInternetAvailable(context)
+        Log.d("ProfileScreen", "isConnected: $isConnected")
+        if (isConnected) {
+            isLoading = true
+            viewModel.fetchGames()
+            if (viewModel.isUserLogged()) {
+                viewModel.getUserName { name ->
+                    userName = name ?: "Usuário"
+                }
+                viewModel.getUserId { id ->
+                    if (id != null) {
+                        userId = id
+                        viewModel.carregarJogosFavoritos(id) { favoriteIds ->
+                            Log.d("ListsScreen", "Favorite Game IDs: $favoriteIds")
+                            viewModel.fetchGamesByIds(favoriteIds) { fetchedGames ->
+                                favoriteGames = fetchedGames
+                                Log.d("ListsScreen", "Favorite Games: $favoriteGames")
+                            }
                         }
                     }
                 }
             }
+            delay(1000)
+            isLoading = false
         }
-        delay(1000)
-        isLoading = false
     }
 
     if (isLoading) {
         LoadingIndicator()
+    } else if (!isConnected) {
+        NetworkWarning()
     } else {
         if (!viewModel.isUserLogged()) {
             Column(

@@ -40,7 +40,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TextButton
@@ -59,12 +58,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
-import com.example.app.ui.components.LoadingIndicator
+import com.example.mygamingdatabase.ui.components.LoadingIndicator
 import com.example.mygamingdatabase.data.GameRepository
 import com.example.mygamingdatabase.data.models.Game
 import com.example.mygamingdatabase.data.models.statusDescriptions
+import com.example.mygamingdatabase.isInternetAvailable
 import com.example.mygamingdatabase.ui.components.MaintenanceDropdownMenu
 import com.example.mygamingdatabase.ui.components.MaintenanceItemDialog
+import com.example.mygamingdatabase.ui.components.NetworkWarning
 import com.example.mygamingdatabase.viewmodel.GameViewModel
 import com.example.mygamingdatabase.viewmodel.GameViewModelFactory
 import kotlinx.coroutines.delay
@@ -79,6 +80,8 @@ fun ListsScreen(
         factory = GameViewModelFactory(context, repository)
     )
 
+    var isConnected by remember { mutableStateOf(true) }
+
     val games by viewModel.games
     var userId by remember { mutableStateOf("Carregando...") }
     var favoriteGames by remember { mutableStateOf<List<Game>>(emptyList()) }
@@ -87,35 +90,40 @@ fun ListsScreen(
     var selectedTab by remember { mutableIntStateOf(0) } // 0: Favoritos, 1: Minha Lista
     var selectedStatus by remember { mutableStateOf<String?>(null) }
 
-    var isLoading by remember { mutableStateOf(true) }
+    var isLoading by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        isLoading = true
-        viewModel.fetchGames()
-        Log.d("ListsScreen", "Games loaded: $games")
-        if (viewModel.isUserLogged()) {
-            viewModel.getUserId { id ->
-                if (id != null) {
-                    Log.d("ListsScreen", "User ID: $id")
-                    userId = id
-                    viewModel.carregarJogosFavoritos(id) { favoriteIds ->
-                        Log.d("ListsScreen", "Favorite Game IDs: $favoriteIds")
-                        viewModel.fetchGamesByIds(favoriteIds) { fetchedGames ->
-                            favoriteGames = fetchedGames
-                            Log.d("ListsScreen", "Favorite Games: $favoriteGames")
+        isConnected = isInternetAvailable(context)
+        if(isConnected) {
+            isLoading = true
+            viewModel.fetchGames()
+            Log.d("ListsScreen", "Games loaded: $games")
+            if (viewModel.isUserLogged()) {
+                viewModel.getUserId { id ->
+                    if (id != null) {
+                        Log.d("ListsScreen", "User ID: $id")
+                        userId = id
+                        viewModel.carregarJogosFavoritos(id) { favoriteIds ->
+                            Log.d("ListsScreen", "Favorite Game IDs: $favoriteIds")
+                            viewModel.fetchGamesByIds(favoriteIds) { fetchedGames ->
+                                favoriteGames = fetchedGames
+                                Log.d("ListsScreen", "Favorite Games: $favoriteGames")
+                            }
                         }
                     }
                 }
             }
+            delay(1000)
+            isLoading = false
         }
-        delay(1000)
-        isLoading = false
     }
 
     var dropdownExpanded by remember { mutableStateOf(false) }
 
     if (isLoading) {
         LoadingIndicator()
+    } else if (!isConnected) {
+        NetworkWarning()
     } else {
         Column(
             modifier = Modifier
@@ -206,7 +214,6 @@ fun ListsScreen(
                             game = game,
                             isFavorite = selectedTab == 0,
                             onRemoveFavorite = { gameId ->
-                                // TODO: Feedback visual
                                 favoriteGames = favoriteGames.filter { it.id != gameId }
                                 Toast.makeText(context, "${game.name} foi removido dos seus favoritos", Toast.LENGTH_SHORT).show()
                                 viewModel.removerJogoFavorito(userId, gameId)

@@ -48,10 +48,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
-import com.example.app.ui.components.LoadingIndicator
+import com.example.mygamingdatabase.ui.components.LoadingIndicator
 import com.example.mygamingdatabase.data.GameRepository
 import com.example.mygamingdatabase.data.models.Game
-import com.example.mygamingdatabase.data.models.gameList
 import com.example.mygamingdatabase.data.models.statusDescriptions
 import com.example.mygamingdatabase.ui.components.AlarmReminderDialog
 import com.example.mygamingdatabase.ui.components.MaintenanceDropdownMenu
@@ -307,6 +306,8 @@ fun ActionButtonsSection(
     var gameToRemoveFromFavorites by remember { mutableStateOf<Int?>(null) }
     var localIsFavorite by remember { mutableStateOf(isFavorite) }
 
+    val context = LocalContext.current
+
     // Mostrar o diálogo de manutenção do item
     if (selectedGameId == game.id) {
         MaintenanceItemDialog(
@@ -350,6 +351,7 @@ fun ActionButtonsSection(
                 if (userId != null) {
                     if (!localIsFavorite) {
                         viewModel.salvarJogoFavorito(userId, game)
+                        Toast.makeText(context, "${game.name} foi adicionado aos seus favoritos!", Toast.LENGTH_SHORT).show()
                         localIsFavorite = true
                     } else {
                         gameToRemoveFromFavorites = game.id
@@ -455,6 +457,7 @@ fun ActionButtonsSection(
                     onClick = {
                         showRemoveFavoriteDialog = false
                         viewModel.removerJogoFavorito(userId!!, game.id)
+                        Toast.makeText(context, "${game.name} foi removido dos seus favoritos", Toast.LENGTH_SHORT).show()
                         localIsFavorite = false
                     }
                 ) {
