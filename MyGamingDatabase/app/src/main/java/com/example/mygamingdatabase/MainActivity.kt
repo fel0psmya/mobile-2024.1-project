@@ -208,7 +208,8 @@ class MainActivity : ComponentActivity() {
                                         isDarkTheme = isDarkTheme,
                                         onThemeChange = {
                                             viewModel.toggleTheme(this@MainActivity)
-                                        }
+                                        },
+                                        repository = repository
                                     )
                                 }
                             }

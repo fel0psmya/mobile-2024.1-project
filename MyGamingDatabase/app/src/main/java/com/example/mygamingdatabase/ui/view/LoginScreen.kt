@@ -35,10 +35,27 @@ fun LoginScreen(viewModel: GameViewModel, navController: NavController, onLoginS
 
     var password by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
+    var emailError by remember { mutableStateOf(false) }
+    var passwordError by remember { mutableStateOf(false) }
 
     fun isValidEmail(email: String): Boolean {
         val emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
         return email.matches(emailPattern.toRegex())
+    }
+
+    fun validateEmail(email: String): String? {
+        return if (isValidEmail(email)) null else "Email inválido"
+    }
+
+    fun validatePassword(password: String): String? {
+        return if (password.length >= 6) null else "A senha deve ter pelo menos 6 caracteres"
+    }
+
+    fun validateFields(): Boolean {
+        emailError = email.isEmpty() || !isValidEmail(email)
+        passwordError = password.isEmpty() || password.length < 6
+
+        return !emailError && !passwordError
     }
 
     val googleSignInLauncher = rememberLauncherForActivityResult(
@@ -88,22 +105,37 @@ fun LoginScreen(viewModel: GameViewModel, navController: NavController, onLoginS
             // Email TextField
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = {
+                    email = it
+                },
                 label = { Text("Email") },
                 leadingIcon = {
                     Icon(imageVector = Icons.Filled.Email, contentDescription = "Email Icon")
                 },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                isError = emailError
             )
+            if(emailError) {
+                Text(
+                    text = "Email inválido",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(top = 4.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(4.dp))
 
             // Password TextField
             OutlinedTextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = {
+                    password = it
+                },
                 label = { Text("Password") },
                 leadingIcon = {
                     Icon(
@@ -114,8 +146,19 @@ fun LoginScreen(viewModel: GameViewModel, navController: NavController, onLoginS
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                isError = passwordError
             )
+            if(passwordError) {
+                Text(
+                    text = "A senha deve ter pelo menos 6 caracteres",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(top = 4.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -134,22 +177,24 @@ fun LoginScreen(viewModel: GameViewModel, navController: NavController, onLoginS
             // Login Button
             Button(
                 onClick = {
-                    viewModel.login(email, password) { success ->
-                        if(success) {
-                            onLoginSuccess()
-                            navController.navigate("home") {
-                                popUpTo("login") { inclusive = true }
+                    if(validateFields()) {
+                        viewModel.login(email, password) { success ->
+                            if (success) {
+                                onLoginSuccess()
+                                navController.navigate("home") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            } else {
+                                Toast.makeText(context, "Erro ao fazer login", Toast.LENGTH_SHORT)
+                                    .show()
                             }
-                        } else {
-                            Toast.makeText(context, "Erro ao fazer login", Toast.LENGTH_SHORT).show()
                         }
                     }
-
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium
             ) {
-                Text(text = "Entrar")
+                Text(text = "Entrar", color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(4.dp))

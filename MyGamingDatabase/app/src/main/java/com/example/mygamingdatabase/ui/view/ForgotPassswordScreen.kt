@@ -24,8 +24,18 @@ import com.example.mygamingdatabase.viewmodel.GameViewModel
 @Composable
 fun ForgotPasswordScreen(viewModel: GameViewModel, navController: NavController) {
     var email by remember { mutableStateOf("") }
-    var isEmailValid by remember { mutableStateOf(true) }
+    var emailError by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
+    fun isValidEmail(email: String): Boolean {
+        val emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
+        return email.matches(emailPattern.toRegex())
+    }
+
+    fun validateEmail(): Boolean {
+        emailError = !isValidEmail(email) || email.isEmpty()
+        return !emailError
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -48,10 +58,9 @@ fun ForgotPasswordScreen(viewModel: GameViewModel, navController: NavController)
                 value = email,
                 onValueChange = {
                     email = it
-                    isEmailValid = android.util.Patterns.EMAIL_ADDRESS.matcher(it).matches()
                 },
                 label = { Text("Email") },
-                isError = !isEmailValid,
+                isError = emailError,
                 leadingIcon = {
                     Icon(imageVector = Icons.Filled.Email, contentDescription = "Email Icon")
                 },
@@ -59,7 +68,7 @@ fun ForgotPasswordScreen(viewModel: GameViewModel, navController: NavController)
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
-            if (isEmailValid) {
+            if (emailError) {
                 Text(
                     text = "Por favor, insira um email válido.",
                     color = MaterialTheme.colorScheme.error,
@@ -75,7 +84,7 @@ fun ForgotPasswordScreen(viewModel: GameViewModel, navController: NavController)
             // Send Recovery Email Button
             Button(
                 onClick = {
-                    if (isEmailValid && email.isNotEmpty()) {
+                    if (validateEmail()) {
                         viewModel.resetPassword(email) { success ->
                             if (success) {
                                 Toast.makeText(context, "Email de recuperação enviado!", Toast.LENGTH_LONG).show()
@@ -86,14 +95,12 @@ fun ForgotPasswordScreen(viewModel: GameViewModel, navController: NavController)
                                 Toast.makeText(context, "Erro ao enviar email", Toast.LENGTH_LONG).show()
                             }
                         }
-                    } else {
-                        Toast.makeText(context, "Insira um email válido", Toast.LENGTH_SHORT).show()
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium
             ) {
-                Text(text = "Enviar Email de Recuperação")
+                Text(text = "Enviar Email de Recuperação", color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -122,9 +129,10 @@ fun ForgotPasswordScreen(viewModel: GameViewModel, navController: NavController)
             Text(
                 text = "Continuar sem login",
                 modifier = Modifier.clickable {
-                    navController.navigate("login") {
-                        popUpTo("forgot") { inclusive = true }
-                    }                },
+                    navController.navigate("home") {
+                        popUpTo("register") { inclusive = true }
+                    }
+                },
                 color = MaterialTheme.colorScheme.primary
             )
 

@@ -229,7 +229,7 @@ fun RegisterScreen(viewModel: GameViewModel, navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium
             ) {
-                Text(text = "Cadastrar")
+                Text(text = "Cadastrar", color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(12.dp))

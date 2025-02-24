@@ -52,9 +52,11 @@ import com.example.mygamingdatabase.ui.components.LoadingIndicator
 import com.example.mygamingdatabase.data.GameRepository
 import com.example.mygamingdatabase.data.models.Game
 import com.example.mygamingdatabase.data.models.statusDescriptions
+import com.example.mygamingdatabase.isInternetAvailable
 import com.example.mygamingdatabase.ui.components.AlarmReminderDialog
 import com.example.mygamingdatabase.ui.components.MaintenanceDropdownMenu
 import com.example.mygamingdatabase.ui.components.MaintenanceItemDialog
+import com.example.mygamingdatabase.ui.components.NetworkWarning
 import com.example.mygamingdatabase.viewmodel.GameViewModel
 import com.example.mygamingdatabase.viewmodel.GameViewModelFactory
 import com.google.accompanist.web.rememberWebViewState
@@ -348,7 +350,7 @@ fun ActionButtonsSection(
                 favBackgroundColor
             )
             .clickable {
-                if (userId != null) {
+                if (userId != null && viewModel.isUserLogged()) {
                     if (!localIsFavorite) {
                         viewModel.salvarJogoFavorito(userId, game)
                         Toast.makeText(context, "${game.name} foi adicionado aos seus favoritos!", Toast.LENGTH_SHORT).show()
@@ -357,6 +359,8 @@ fun ActionButtonsSection(
                         gameToRemoveFromFavorites = game.id
                         showRemoveFavoriteDialog = true
                     }
+                } else {
+                    Toast.makeText(context, "Você precisa estar logado para adicionar aos favoritos.", Toast.LENGTH_SHORT).show()
                 }
             },
         verticalAlignment = Alignment.CenterVertically,
@@ -480,35 +484,40 @@ fun ActionButtonsSection(
 @ExperimentalMaterial3Api
 @Composable
 fun GameDetailsScreen (gameId : String, context: Context = LocalContext.current) {
+    var isConnected by remember { mutableStateOf(true) }
+
     val repository = GameRepository()
     val viewModel: GameViewModel = viewModel(factory = GameViewModelFactory(context, repository))
     val game = viewModel.games.value.find { it.id == gameId.toInt() }
-    var isLoading by remember { mutableStateOf(true) }
+    var isLoading by remember { mutableStateOf(false) }
 
     var isFavorite by remember { mutableStateOf(false) }
     var userId by remember { mutableStateOf<String?>(null) }
 
-
-    // Simula o carregamento dos dados. Usar um ViewModel ou outra lógica de carregamento posteriormente.
     LaunchedEffect(gameId) {
-        isLoading = true
-        viewModel.fetchGameById(gameId.toInt())
-        if(viewModel.isUserLogged()) {
-            viewModel.getUserId { id ->
-                if (id != null) {
-                    userId = id
-                    viewModel.isGameFavorite(id, gameId.toInt()) { favorite ->
-                        isFavorite = favorite
+        isConnected = isInternetAvailable(context)
+        if(isConnected) {
+            isLoading = true
+            viewModel.fetchGameById(gameId.toInt())
+            if (viewModel.isUserLogged()) {
+                viewModel.getUserId { id ->
+                    if (id != null) {
+                        userId = id
+                        viewModel.isGameFavorite(id, gameId.toInt()) { favorite ->
+                            isFavorite = favorite
+                        }
                     }
                 }
             }
+            delay(1000) // Simula um atraso de 1 segundo
+            isLoading = false
         }
-        delay(1000) // Simula um atraso de 1 segundo
-        isLoading = false
     }
 
     if(isLoading) {
         LoadingIndicator()
+    } else if (!isConnected) {
+        NetworkWarning()
     } else {
         game?.let {
             Column(

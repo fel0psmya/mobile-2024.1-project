@@ -105,7 +105,7 @@ fun ProfileScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.medium
                 ) {
-                    Text(text = "Entrar")
+                    Text(text = "Entrar", color = Color.White)
                 }
             }
         } else {
@@ -169,13 +169,16 @@ fun ProfileScreen(
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .align(Alignment.Start)
+                        .padding(bottom = 4.dp)
                 )
                 HorizontalDivider()
                 // Implementar lazy row
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .align(Alignment.Start)
                 ) {
                     items(favoriteGames) { game ->
                         Card(
@@ -233,6 +236,7 @@ fun ProfileScreen(
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .align(Alignment.Start)
+                        .padding(bottom = 4.dp)
                 )
                 HorizontalDivider()
                 // Implementar lazy row

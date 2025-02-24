@@ -172,6 +172,18 @@ class GameViewModel (
             }
     }
 
+    fun removerTodosOsFavoritos (userId: String, onComplete: () -> Unit) {
+        database.child(userId).child("favorites").removeValue()
+            .addOnSuccessListener {
+                Log.d("GameViewModel", "Todos os favoritos removidos do usuário $userId")
+                onComplete()
+            }
+            .addOnFailureListener { e ->
+                Log.e("GameViewModel", "Erro ao remover todos os favoritos: ${e.message}")
+                onComplete()
+            }
+    }
+
     fun isGameFavorite(userId: String, gameId: Int, onComplete: (Boolean) -> Unit) {
         val favoriteGamesRef = database.child(userId).child("favorites").child(gameId.toString())
         favoriteGamesRef.get().addOnSuccessListener { snapshot ->
