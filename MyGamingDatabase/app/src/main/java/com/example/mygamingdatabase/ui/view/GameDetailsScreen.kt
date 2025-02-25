@@ -298,6 +298,7 @@ fun MainInfoSection(game: Game) {
 fun ActionButtonsSection(
     game: Game,
     isFavorite: Boolean,
+    isAddedToList: Boolean,
     userId: String?,
     viewModel: GameViewModel
 ) {
@@ -307,6 +308,7 @@ fun ActionButtonsSection(
     var showRemoveFavoriteDialog by remember { mutableStateOf(false) }
     var gameToRemoveFromFavorites by remember { mutableStateOf<Int?>(null) }
     var localIsFavorite by remember { mutableStateOf(isFavorite) }
+    var localIsAddedToList by remember { mutableStateOf(isAddedToList) }
 
     val context = LocalContext.current
 
@@ -318,9 +320,15 @@ fun ActionButtonsSection(
             onSave = { updatedGame ->
                 game.status = updatedGame.status
                 game.userScore = updatedGame.userScore
-                if (!game.isAddedToList.value) {
-                    game.isAddedToList.value = true
+
+                if (!localIsAddedToList) {
+                    if (userId != null) {
+                        viewModel.salvarJogoNaLista(userId, game)
+                    }
+                    Toast.makeText(context, "${game.name} foi adicionado a sua lista!", Toast.LENGTH_SHORT).show()
+                    localIsAddedToList = true
                 }
+
                 selectedGameId = null
             }
         )
@@ -384,11 +392,11 @@ fun ActionButtonsSection(
 
     // Botão "Adicionar à Lista"
     val listBackgroundColor by animateColorAsState(
-        targetValue =  if (game.isAddedToList.value) MaterialTheme.colorScheme.primary else Color.Transparent, // Alterando entre cor de destaque e transparente
+        targetValue =  if (localIsAddedToList) MaterialTheme.colorScheme.primary else Color.Transparent, // Alterando entre cor de destaque e transparente
         animationSpec = tween(durationMillis = 400) // Duração da animação
     )
     val listTextColor by animateColorAsState(
-        targetValue =  if (game.isAddedToList.value) Color.White else MaterialTheme.colorScheme.primary,
+        targetValue =  if (localIsAddedToList) Color.White else MaterialTheme.colorScheme.primary,
         animationSpec = tween(durationMillis = 400)
     )
     Row(
@@ -406,30 +414,36 @@ fun ActionButtonsSection(
                 listBackgroundColor
             )
             .clickable {
-                if (game.isAddedToList.value) {
-                    dropdownExpandedByGameId = game.id // Alterna o valor do dropdown
+                if (userId != null && viewModel.isUserLogged()) {
+                    if (localIsAddedToList) {
+                        dropdownExpandedByGameId = game.id // Alterna o valor do dropdown
+                    } else {
+                        selectedGameId = game.id
+                    }
                 } else {
-                    selectedGameId = game.id
+                    Toast.makeText(context, "Você precisa estar logado para adicionar um jogo à lista.", Toast.LENGTH_SHORT).show()
                 }
             },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
         Icon(
-            imageVector = if (!game.isAddedToList.value) Icons.Filled.BookmarkBorder else Icons.Filled.Bookmark,
-            contentDescription = if (!game.isAddedToList.value) "Adicionar" else "Adicionado",
+            imageVector = if (!localIsAddedToList) Icons.Filled.BookmarkBorder else Icons.Filled.Bookmark,
+            contentDescription = if (!localIsAddedToList) "Adicionar" else "Adicionado",
             tint = listTextColor
         )
         Spacer(modifier = Modifier.width(8.dp))
+
+        // TODO: Criar método no GameViewModel para resgatar um jogo específico da lista do usuário para exibir seus dados corretamente
         Text(
-            text = if (!game.isAddedToList.value) "Adicionar à Lista" else "${game.userScore} | ${statusDescriptions[game.status]}",
+            text = if (!localIsAddedToList) "Adicionar à Lista" else "${game.userScore} | ${statusDescriptions[game.status]}",
             color = listTextColor,
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.align(Alignment.CenterVertically)
         )
     }
 
-    if (game.isAddedToList.value && dropdownExpandedByGameId == game.id) {
+    if (localIsAddedToList && dropdownExpandedByGameId == game.id) {
         Box(modifier = Modifier.padding(start = 8.dp)) {
             MaintenanceDropdownMenu(
                 game = game,
@@ -441,7 +455,13 @@ fun ActionButtonsSection(
                 },
                 onRemove = {
                     dropdownExpandedByGameId = null
-                    game.isAddedToList.value = false
+
+                    if (userId != null) {
+                        viewModel.removerJogoDaLista(userId, game.id)
+                    }
+                    localIsAddedToList = false
+
+                    Toast.makeText(context, "${game.name} foi removido da sua lista", Toast.LENGTH_SHORT).show()
                 }
             )
         }
@@ -492,6 +512,8 @@ fun GameDetailsScreen (gameId : String, context: Context = LocalContext.current)
     var isLoading by remember { mutableStateOf(false) }
 
     var isFavorite by remember { mutableStateOf(false) }
+    var isAddedToList by remember { mutableStateOf(false) }
+
     var userId by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(gameId) {
@@ -506,10 +528,13 @@ fun GameDetailsScreen (gameId : String, context: Context = LocalContext.current)
                         viewModel.isGameFavorite(id, gameId.toInt()) { favorite ->
                             isFavorite = favorite
                         }
+                        viewModel.isGameAddedToList(id, gameId.toInt()) { gameInList ->
+                            isAddedToList = gameInList
+                        }
                     }
                 }
             }
-            delay(1000) // Simula um atraso de 1 segundo
+            delay(3000) // Simula um atraso de 1 segundo
             isLoading = false
         }
     }
@@ -531,7 +556,7 @@ fun GameDetailsScreen (gameId : String, context: Context = LocalContext.current)
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Seção 2: Botão de Favorito e Botão de Adicionar à Lista
-                ActionButtonsSection(game, isFavorite, userId, viewModel)
+                ActionButtonsSection(game, isFavorite, isAddedToList, userId, viewModel)
 
                 Spacer(modifier = Modifier.height(24.dp))
 

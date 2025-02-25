@@ -52,6 +52,26 @@ data class Game(
         status = GameStatus.PLANNING_TO_PLAY,
         artworkUrl = null
     )
+
+    // Construtor secundário para carregar apenas ID, status e nota
+    constructor(id: Int, userScore: Int?, status: GameStatus) : this(
+        id = id,
+        name = null,
+        imageUrl = null,
+        trailerUrl = null,
+        description = null,
+        platforms = null,
+        releaseDate = null,
+        screenshots = null,
+        isFavorite = mutableStateOf(false),
+        isAddedToList = mutableStateOf(false),
+        isReminded = mutableStateOf(false),
+        reminderTime = mutableStateOf(""),
+        reminderDays = mutableStateOf(""),
+        userScore = userScore,
+        status = status,
+        artworkUrl = null
+    )
 }
 
 enum class GameStatus {

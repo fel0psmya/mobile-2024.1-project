@@ -61,6 +61,7 @@ fun ProfileScreen(
                 viewModel.getUserName { name ->
                     userName = name ?: "Usuário"
                 }
+
                 viewModel.getUserId { id ->
                     if (id != null) {
                         userId = id
@@ -71,10 +72,19 @@ fun ProfileScreen(
                                 Log.d("ListsScreen", "Favorite Games: $favoriteGames")
                             }
                         }
+
+                        viewModel.carregarJogosNaLista(userId) { list ->
+                            val gameIds = list.map { it.id } // Extrai apenas os IDs da lista de jogos
+
+                            viewModel.fetchGamesByIds(gameIds) { fetchedGames ->
+                                gameList = fetchedGames
+                                Log.d("ListsScreen", "Game list: $gameList")
+                            }
+                        }
                     }
                 }
             }
-            delay(1000)
+            delay(4500)
             isLoading = false
         }
     }
@@ -152,8 +162,8 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Decidir se usará username
 
+                // TODO: Implement user description CRUD
                 Text(
                     text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
                     style = MaterialTheme.typography.bodyMedium,
@@ -172,7 +182,7 @@ fun ProfileScreen(
                         .padding(bottom = 4.dp)
                 )
                 HorizontalDivider()
-                // Implementar lazy row
+
                 Spacer(modifier = Modifier.height(8.dp))
 
                 LazyRow(
@@ -210,7 +220,7 @@ fun ProfileScreen(
                                         .background(Color.Black.copy(alpha = 0.6f)) // Fundo preto semi-transparente
                                         .padding(8.dp)
                                 ) {
-                                    Column(modifier = Modifier.fillMaxHeight()) {
+                                    Column(modifier = Modifier.fillMaxHeight().align(Alignment.CenterVertically)) {
                                         game.name?.let {
                                             Text(
                                                 text = it,
@@ -239,7 +249,60 @@ fun ProfileScreen(
                         .padding(bottom = 4.dp)
                 )
                 HorizontalDivider()
-                // Implementar lazy row
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                ) {
+                    items(gameList) { game ->
+                        Card(
+                            modifier = Modifier
+                                .width(120.dp)
+                                .padding(top = 4.dp, bottom = 8.dp)
+                                .aspectRatio(3f / 4f)
+                                .align(Alignment.Start)
+                                .clickable {
+                                    navController.navigate("gameDetails/${game.id}")
+                                },
+                            elevation = CardDefaults.cardElevation(4.dp)
+                        ) {
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                Image(
+                                    painter = rememberAsyncImagePainter(game.imageUrl),
+                                    contentDescription = game.name,
+                                    modifier = Modifier
+                                        .matchParentSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+
+                                // Row na parte inferior com fundo preto transparente
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(32.dp)
+                                        .align(Alignment.BottomStart)
+                                        .background(Color.Black.copy(alpha = 0.6f)) // Fundo preto semi-transparente
+                                        .padding(8.dp)
+                                ) {
+                                    Column(modifier = Modifier.fillMaxHeight().align(Alignment.CenterVertically)) {
+                                        game.name?.let {
+                                            Text(
+                                                text = it,
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

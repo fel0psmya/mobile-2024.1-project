@@ -66,7 +66,6 @@ fun SettingsScreen(
         }
     }
 
-    // TODO: Clear user favorites
     val clearFavorites = {
         if (userId != "Carregando...") {
             viewModel.removerTodosOsFavoritos(userId) {
@@ -77,10 +76,13 @@ fun SettingsScreen(
         }
     }
 
-    // TODO: Clear user game list
     val clearGameList = {
-        gameList.forEach { game ->
-            game.isAddedToList.value = false
+        if (userId != "Carregando...") {
+            viewModel.removerTodosOsJogosDaLista(userId) {
+                Toast.makeText(context, "Jogos removidos com sucesso da sua lista", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(context, "Erro ao carregar o ID do usuário", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -136,7 +138,11 @@ fun SettingsScreen(
                 modifier = Modifier
                     .padding(8.dp)
                     .clickable {
-                        showClearUserGameListDialog = true
+                        if (viewModel.isUserLogged()) {
+                            showClearUserGameListDialog = true
+                        } else {
+                        Toast.makeText(context, "Você precisa estar logado para limpar sua lista.", Toast.LENGTH_LONG).show()
+                        }
                     }
             )
         }
@@ -216,7 +222,7 @@ fun SettingsScreen(
                 TextButton(
                     onClick = {
                         showClearUserGameListDialog = false
-                        // TODO: clearGameList()
+                        clearGameList()
                     }
                 ) {
                     Text("Confirmar")

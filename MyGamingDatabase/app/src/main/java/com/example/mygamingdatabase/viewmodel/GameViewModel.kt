@@ -6,17 +6,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mygamingdatabase.DataStoreUtils
 import com.example.mygamingdatabase.data.GameRepository
 import com.example.mygamingdatabase.data.RetrofitInstance
 import com.example.mygamingdatabase.data.mapToGame
 import com.example.mygamingdatabase.data.models.Game
+import com.example.mygamingdatabase.data.models.GameStatus
 import com.example.mygamingdatabase.data.models.toDTO
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.firebase.database.ChildEventListener
@@ -227,6 +225,47 @@ class GameViewModel (
         }
     }
 
+    fun salvarJogoNaLista(userId: String, game: Game) {
+        val gameData = mapOf(
+            "rating" to game.userScore,
+            "status" to game.status.name
+        )
+        database.child(userId).child("games").child(game.id.toString()).setValue(gameData)
+    }
+
+    fun removerJogoDaLista(userId: String, gameId: Int) {
+        database.child(userId).child("games").child(gameId.toString()).removeValue()
+    }
+
+    fun removerTodosOsJogosDaLista (userId: String, onComplete: () -> Unit) {
+        database.child(userId).child("games").removeValue()
+            .addOnSuccessListener {
+                Log.d("GameViewModel", "Limpeza da lista do usuário $userId concluída")
+                onComplete()
+            }
+            .addOnFailureListener { e ->
+                Log.e("GameViewModel", "Erro ao limpar lista: ${e.message}")
+                onComplete()
+            }
+    }
+
+    fun alterarJogoDaLista(userId: String, game: Game) {
+        val gameData = mapOf(
+            "rating" to game.userScore,
+            "status" to game.status.name
+        )
+        database.child(userId).child("games").child(game.id.toString()).updateChildren(gameData)
+    }
+
+    fun isGameAddedToList(userId: String, gameId: Int, onComplete: (Boolean) -> Unit) {
+        val gameListRef = database.child(userId).child("games").child(gameId.toString())
+        gameListRef.get().addOnSuccessListener { snapshot ->
+            onComplete(snapshot.exists())
+        }.addOnFailureListener { e ->
+            Log.e("GameViewModel", "Erro ao verificar jogo na lista: ${e.message}")
+            onComplete(false)
+        }
+    }
 
     fun buscarJogosNaLista(userId: String, onResult: (List<Game>) -> Unit) {
         viewModelScope.launch {
@@ -235,9 +274,19 @@ class GameViewModel (
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val userGamesList = mutableListOf<Game>()
                     for (gameSnapshot in snapshot.children) {
-                        val game = gameSnapshot.getValue(Game::class.java)
-                        if (game != null) {
+                        Log.d("GameViewModel", "Snapshot key: ${gameSnapshot.key}, value: ${gameSnapshot.value}")
+                        val gameId = gameSnapshot.key?.toIntOrNull()
+
+                        if (gameId != null) {
+                            val rating = gameSnapshot.child("rating").getValue(Int::class.java) ?: 0
+                            val statusString = gameSnapshot.child("status").getValue(String::class.java)
+                            val status = statusString?.let { GameStatus.valueOf(it) } ?: GameStatus.PLANNING_TO_PLAY
+
+                            val game = Game(gameId, rating, status)
+
                             userGamesList.add(game)
+                        } else {
+                            Log.e("GameViewModel", "Jogo não encontrado para o ID $gameId")
                         }
                     }
                     onResult(userGamesList)
@@ -251,24 +300,20 @@ class GameViewModel (
         }
     }
 
-    fun salvarJogoNaLista(userId: String, game: Game) {
-        val gameData = mapOf(
-            "rating" to game.userScore,
-            "status" to game.status.name
-        )
-        database.child(userId).child("games").child(game.id.toString()).setValue(gameData)
-    }
-
-    fun removerJogoDaLista(userId: String, gameId: Int) {
-        database.child(userId).child("games").child(gameId.toString()).removeValue()
-    }
-
-    fun alterarJogoDaLista(userId: String, game: Game) {
-        val gameData = mapOf(
-            "rating" to game.userScore,
-            "status" to game.status.name
-        )
-        database.child(userId).child("games").child(game.id.toString()).updateChildren(gameData)
+    fun carregarJogosNaLista(userId: String,  onComplete: (List<Game>) -> Unit) {
+        buscarJogosNaLista(userId) { gameList ->
+            Log.d("GameViewModel", "Jogos carregados: $gameList")
+            val updatedGames = games.value.map { game ->
+                val gameInList = gameList.find { it.id == game.id }
+                game.copy(
+                    isAddedToList = mutableStateOf(gameInList != null),
+                    userScore = gameInList?.userScore ?: game.userScore,
+                    status = gameInList?.status ?: game.status
+                )
+            }
+            games.value = updatedGames
+            onComplete(gameList)
+        }
     }
 
     fun salvarLembrete(userId: String, gameId: Int, reminderTime: String, reminderDays: String) {

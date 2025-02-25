@@ -103,6 +103,7 @@ fun HomeScreen(
 
     var userId by remember { mutableStateOf("Carregando...") }
     var favoriteGameIds by remember { mutableStateOf<List<Int>>(emptyList()) }
+    var gameList by remember { mutableStateOf<List<Game>>(emptyList()) }
 
 
     val games by viewModel.games
@@ -135,10 +136,16 @@ fun HomeScreen(
                         viewModel.carregarJogosFavoritos(id) { favoriteIds ->
                             favoriteGameIds = favoriteIds
                         }
+                        viewModel.carregarJogosNaLista(id) { list ->
+                            Log.d("HomeScreen", "Lista de jogos recebida no onComplete: $list")
+                            gameList = list
+                            Log.d("HomeScreen", "Lista de jogos convertida: $gameList")
+                        }
+                        Log.d("HomeScreen", "User list: $gameList")
                     }
                 }
             }
-            delay(1000)
+            delay(2500)
             isLoading = false
         }
     }
@@ -202,22 +209,29 @@ fun HomeScreen(
                                         onSave = { updatedGame ->
                                             game.status = updatedGame.status
                                             game.userScore = updatedGame.userScore
-                                            if (!game.isAddedToList.value) {
-                                                game.isAddedToList.value = true
+                                            if(viewModel.isUserLogged()) {
+                                                if (!gameList.any { it.id == game.id }) {
+                                                    viewModel.salvarJogoNaLista(userId, game)
+                                                    gameList = gameList + game // Adicionar o jogo na gameList
 
-                                                // TODO
-                                                // viewModel.salvarJogoNaLista(viewModel.getUserId(), game)
+                                                    coroutineScope.launch {
+                                                        val result = snackbarHostState.showSnackbar(
+                                                            message = "${game.name} foi adicionado à sua lista!",
+                                                            duration = SnackbarDuration.Short,
+                                                            withDismissAction = true
+                                                        )
+                                                    }
 
-                                                coroutineScope.launch {
-                                                    val result = snackbarHostState.showSnackbar(
-                                                        message = "${game.name} foi adicionado à sua lista!",
-                                                        duration = SnackbarDuration.Short,
-                                                        withDismissAction = true
-                                                    )
+                                                    if (game.status == GameStatus.PLANNING_TO_PLAY || game.status == GameStatus.PLAYING) {
+                                                        selectedGameIdForReminder = game.id
+                                                    }
                                                 }
-
-                                                if (game.status == GameStatus.PLANNING_TO_PLAY || game.status == GameStatus.PLAYING) {
-                                                    selectedGameIdForReminder = game.id
+                                            } else {
+                                                coroutineScope.launch {
+                                                    snackbarHostState.showSnackbar(
+                                                        message = "Você precisa estar logado para adicionar jogos à lista.",
+                                                        duration = SnackbarDuration.Short
+                                                    )
                                                 }
                                             }
                                         }
@@ -353,7 +367,6 @@ fun HomeScreen(
                                                     .size(24.dp)
                                                     .scale(scale)
                                                     .clickable {
-                                                        // TODO
                                                         if(viewModel.isUserLogged()) {
                                                             if (!favoriteGameIds.contains(game.id)) {
                                                                 viewModel.salvarJogoFavorito(userId, game)
@@ -421,11 +434,11 @@ fun HomeScreen(
 
                                         // Botão "Adicionar à Lista"
                                         val backgroundColor by animateColorAsState(
-                                            targetValue = if (game.isAddedToList.value) MaterialTheme.colorScheme.primary else Color.Transparent, // Alterando entre cor de destaque e transparente
+                                            targetValue = if (gameList.any { it.id == game.id }) MaterialTheme.colorScheme.primary else Color.Transparent, // Alterando entre cor de destaque e transparente
                                             animationSpec = tween(durationMillis = 400) // Duração da animação
                                         )
                                         val iconColor by animateColorAsState(
-                                            targetValue = if (!game.isAddedToList.value) MaterialTheme.colorScheme.primary else Color.White,
+                                            targetValue = if (!gameList.any { it.id == game.id }) MaterialTheme.colorScheme.primary else Color.White,
                                             animationSpec = tween(durationMillis = 400)
                                         )
                                         Row(
@@ -441,7 +454,7 @@ fun HomeScreen(
                                                 .background(backgroundColor)
                                                 .clickable {
                                                     if (viewModel.isUserLogged()) {
-                                                        if (game.isAddedToList.value) {
+                                                        if (gameList.any { it.id == game.id }) {
                                                             dropdownExpandedByGameId = game.id // Alterna o valor do dropdown
                                                         } else {
                                                             selectedGameId = game.id
@@ -459,20 +472,20 @@ fun HomeScreen(
                                             horizontalArrangement = Arrangement.Center
                                         ) {
                                             Icon(
-                                                imageVector = if (!game.isAddedToList.value) Icons.Filled.BookmarkBorder else Icons.Filled.Bookmark,
-                                                contentDescription = if (!game.isAddedToList.value) "Adicionar" else "Adicionado",
+                                                imageVector = if (!gameList.any { it.id == game.id }) Icons.Filled.BookmarkBorder else Icons.Filled.Bookmark,
+                                                contentDescription = if (!gameList.any { it.id == game.id }) "Adicionar" else "Adicionado",
                                                 tint = iconColor
                                             )
                                             Spacer(modifier = Modifier.width(8.dp))
                                             Text(
-                                                text = if (!game.isAddedToList.value) "Adicionar à Lista" else "Adicionado",
+                                                text = if (!gameList.any { it.id == game.id }) "Adicionar à Lista" else "Adicionado",
                                                 color = iconColor,
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 modifier = Modifier.align(Alignment.CenterVertically)
                                             )
                                         }
 
-                                        if (game.isAddedToList.value && dropdownExpandedByGameId == game.id) {
+                                        if (gameList.any { it.id == game.id } && dropdownExpandedByGameId == game.id) {
                                             Box(modifier = Modifier.padding(start = 8.dp)) {
                                                 MaintenanceDropdownMenu(
                                                     game = game,
@@ -486,9 +499,10 @@ fun HomeScreen(
                                                     },
                                                     onRemove = {
                                                         dropdownExpandedByGameId = null
-                                                        game.isAddedToList.value = false
-                                                        // TODO
-                                                        // viewModel.removerJogoDaLista(viewModel.getUserId(), game.id)
+
+                                                        viewModel.removerJogoDaLista(userId, game.id)
+                                                        gameList = gameList - game
+
                                                         coroutineScope.launch {
                                                             val result =
                                                                 snackbarHostState.showSnackbar(
@@ -498,9 +512,8 @@ fun HomeScreen(
                                                                     withDismissAction = true
                                                                 )
                                                             if (result == SnackbarResult.ActionPerformed) {
-                                                                game.isAddedToList.value = true
-                                                                // TODO
-                                                                // viewModel.salvarJogoNaLista(viewModel.getUserId(), game)
+                                                                viewModel.salvarJogoNaLista(userId, game)
+                                                                gameList = gameList + game
                                                             }
                                                         }
                                                     }

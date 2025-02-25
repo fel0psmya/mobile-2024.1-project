@@ -61,6 +61,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.mygamingdatabase.ui.components.LoadingIndicator
 import com.example.mygamingdatabase.data.GameRepository
 import com.example.mygamingdatabase.data.models.Game
+import com.example.mygamingdatabase.data.models.GameStatus
 import com.example.mygamingdatabase.data.models.statusDescriptions
 import com.example.mygamingdatabase.isInternetAvailable
 import com.example.mygamingdatabase.ui.components.MaintenanceDropdownMenu
@@ -103,6 +104,7 @@ fun ListsScreen(
                     if (id != null) {
                         Log.d("ListsScreen", "User ID: $id")
                         userId = id
+
                         viewModel.carregarJogosFavoritos(id) { favoriteIds ->
                             Log.d("ListsScreen", "Favorite Game IDs: $favoriteIds")
                             viewModel.fetchGamesByIds(favoriteIds) { fetchedGames ->
@@ -110,10 +112,19 @@ fun ListsScreen(
                                 Log.d("ListsScreen", "Favorite Games: $favoriteGames")
                             }
                         }
+
+                        viewModel.carregarJogosNaLista(userId) { list ->
+                            val gameIds = list.map { it.id } // Extrai apenas os IDs da lista de jogos
+
+                            viewModel.fetchGamesByIds(gameIds) { fetchedGames ->
+                                gameList = fetchedGames
+                                Log.d("ListsScreen", "Game list: $gameList")
+                            }
+                        }
                     }
                 }
             }
-            delay(1000)
+            delay(4500)
             isLoading = false
         }
     }
@@ -146,7 +157,8 @@ fun ListsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (selectedTab == 1) {
+            // TODO: Refazer a função de filtrar jogos
+            /*if (selectedTab == 1) {
                 // Botão que, ao ser clicado, abre um dropdown menu para selecionar filtrar a lista por status
                 Row(
                     modifier = Modifier
@@ -200,6 +212,14 @@ fun ListsScreen(
                 }
             }
 
+            val selectedGameStatus = statusDescriptions.entries.find { it.value == selectedStatus }?.key
+            val filteredGameList = remember(gameList, selectedStatus) {
+                gameList.filter { game ->
+                    Log.d("ListsScreen", "${game.status} | $selectedGameStatus")
+                    selectedStatus == null || game.status == selectedGameStatus
+                }
+            }*/
+
             // LazyVerticalGrid para exibir 2 jogos por linha
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
@@ -211,6 +231,7 @@ fun ListsScreen(
                 if (gamesToDisplay.isNotEmpty()) {
                     items(gamesToDisplay) { game ->
                         GameCard(
+                            navController = navController,
                             game = game,
                             isFavorite = selectedTab == 0,
                             onRemoveFavorite = { gameId ->
@@ -218,9 +239,12 @@ fun ListsScreen(
                                 Toast.makeText(context, "${game.name} foi removido dos seus favoritos", Toast.LENGTH_SHORT).show()
                                 viewModel.removerJogoFavorito(userId, gameId)
                             },
-                            navController = navController,
-                            viewModel = viewModel,
-                            userId = userId
+                            isAddedToList = selectedTab == 1,
+                            onRemoveGameFromList = {
+                                gameList = gameList.filter { it.id != game.id }
+                                Toast.makeText(context, "${game.name} foi removido da sua lista", Toast.LENGTH_SHORT).show()
+                                viewModel.removerJogoDaLista(userId, game.id)
+                            }
                         )
                     }
                 }
@@ -248,17 +272,19 @@ fun ListsScreen(
 
 @Composable
 fun GameCard(
+    navController: NavHostController,
     game: Game,
     isFavorite: Boolean,
     onRemoveFavorite: (Int) -> Unit,
-    navController: NavHostController,
-    viewModel: GameViewModel,
-    userId: String
+    isAddedToList: Boolean,
+    onRemoveGameFromList: (Int) -> Unit,
 ) {
     var selectedGameId by remember { mutableStateOf<Int?>(null) }
     var dropdownExpandedByGameId by remember { mutableStateOf<Int?>(null) }
     var showRemoveFavoriteDialog by remember { mutableStateOf(false) }
     var gameToRemoveFromFavorites by remember { mutableStateOf<Int?>(null) }
+
+
 
     // Mostrar o diálogo de manutenção do item
     if (selectedGameId == game.id) {
@@ -268,9 +294,9 @@ fun GameCard(
             onSave = { updatedGame ->
                 game.status = updatedGame.status
                 game.userScore = updatedGame.userScore
-                if (!game.isAddedToList.value) {
-                    game.isAddedToList.value = true
-                }
+
+                // TODO
+                // viewModel.salvarJogoNaLista()
                 selectedGameId = null
             }
         )
@@ -301,12 +327,12 @@ fun GameCard(
             Row(
                 modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp)
+                .height(32.dp)
                 .align(Alignment.BottomStart)
                 .background(Color.Black.copy(alpha = 0.6f)) // Fundo preto semi-transparente
                 .padding(8.dp)
             ) {
-                Column (modifier = Modifier.fillMaxHeight()) {
+                Column (modifier = Modifier.fillMaxHeight().align(Alignment.CenterVertically)) {
                     game.name?.let {
                         Text(
                             text = it,
@@ -316,11 +342,11 @@ fun GameCard(
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    Text(
-                        text = if (game.userScore != null) "Nota: ${game.userScore}" else "",
+                    /*Text(
+                        text = if (gameList.any { it.id == game.id }) "Nota: ${gameList[game.id].userScore}" else "",
                         color = Color.White,
                         style = MaterialTheme.typography.labelSmall
-                    )
+                    )*/
                 }
             }
 
@@ -355,11 +381,11 @@ fun GameCard(
                 )
             }
 
-            if (game.isAddedToList.value && dropdownExpandedByGameId == game.id) {
+            if (isAddedToList && dropdownExpandedByGameId == game.id) {
                 Box(modifier = Modifier.padding(start = 8.dp)) {
                     MaintenanceDropdownMenu(
                         game = game,
-                        expanded = if (dropdownExpandedByGameId == game.id) { true } else { false },
+                        expanded = dropdownExpandedByGameId == game.id,
                         onDismissRequest = { dropdownExpandedByGameId = null },
                         onEdit = {
                             dropdownExpandedByGameId = null
@@ -367,7 +393,7 @@ fun GameCard(
                         },
                         onRemove = {
                             dropdownExpandedByGameId = null
-                            game.isAddedToList.value = false
+                            onRemoveGameFromList(game.id)
                         }
                     )
                 }
