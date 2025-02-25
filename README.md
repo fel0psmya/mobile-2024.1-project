@@ -1,4 +1,4 @@
-<h3 align="center">My Gaming Database: V 0.2.0</h3>
+<h3 align="center">My Gaming Database: V 0.3.0</h3>
 
 
 
