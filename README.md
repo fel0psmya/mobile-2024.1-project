@@ -243,7 +243,17 @@ These instructions will get you a copy of the project up and running on your loc
 | **Felipe**      | Rebuilt debug APK |
 | **Eduardo**  | Removed 'Presentation Videos' folder and added '2nd Delivery' folder inside 'Screenshots' |
 | **Eduardo**  | Added screenshots of 2nd delivery to documentation |
-
+### 🚩Sprint 3:
+| **Responsible**    | **Tasks Completed** |
+|--------------------|--------------------|
+| **Eduardo**  | - Implemented Retrofit Web Request to MGDApi and Implemented Login-related Screens without Backend Logic |
+| **Felipe**      | - Implemented login with email and password and Google social login using Firebase Authentication |
+| **Eduardo**  | - Implemented user favorite games persistence using Firebase Realtime Database |
+| **Eduardo**  | - Implemented connectivity checking for context sensitivity |
+| **Eduardo**  | - Implemented connectivity checking for context sensitivity for GameDetailsScreen |
+| **Felipe**      | - Implemented user game list persistence using Firebase Realtime Database |
+| **Felipe**      | - Added functional APK |
+| **Felipe**      | - Added screenshots of the 3rd delivery screens |
 
 
 ## ✍️ Authors <a name = "authors"></a>
