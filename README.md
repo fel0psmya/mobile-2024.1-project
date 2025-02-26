@@ -75,6 +75,21 @@ Here's the English version in the format of a README:
    - **Progress Indicator**: A loading animation is displayed when fetching detailed game information, providing feedback to users during data retrieval.
    - **Seamless Experience**: Ensures smooth transitions by indicating the loading state before the details are fully displayed.
    - **Consistent Design**: The indicator integrates seamlessly with the overall visual style of the application.
+### 🏁Sprint 3
+#### 13. **API Integration and Backend Enhancements**
+   - **Retrofit Integration**: Implemented API calls using Retrofit to connect with the backend hosted on Render.
+
+#### 14. **User Authentication and Profile Management**
+   - **Firebase Authentication**: Users can sign up and log in using Firebase Authentication.
+   - **Game List and Favorites on Profile Screen**: Display user's favorite games and game lists in LazyRows
+
+#### 15. **Persistent Data Storage**
+   - **Firebase Realtime Database**: Stores user data persistently, including:
+     - List of favorite game IDs.
+     - List of game IDs added to "My List", each with an associated rating and status.
+
+#### 16. **Context Awareness and Connectivity Management**
+   - **Internet Connection Detection**: Uses Connectivity Manager to detect internet availability and provide appropriate feedback to the user.
 
 ---
 
@@ -83,7 +98,6 @@ Here's the English version in the format of a README:
 ### **Future Expansions**
    - **Enhanced Game Details**: Integration of IGDB API to include screenshots, trailers, and community reviews directly in the details screen.
    - **Advanced Social Features**: 
-     - User profiles showcasing created lists, favorite games, and completed games.
      - Sharing capabilities for lists with friends or the broader community.
    - **Community Reviews and Ratings**: Enable users to write and share reviews for games they have played, with ratings visible to others.
    - **Achievements and Badges**: Reward users with badges for milestones such as completing games or adding a certain number of favorites.
@@ -124,12 +138,32 @@ Here's the English version in the format of a README:
    - **My List Tab**:
      - Shows games added by the user, with dropdown options for editing status or removing them.
      - Includes filters to display only games marked as "Playing", "Wanted", "Droped" or "Completed".
+### 🏁Sprint 3
+
+#### 8. **Register Screen**
+
+- Allows users to sign up for MGD using their name, email, and password.
+
+#### 9. **Login Screen**
+
+- Enables users to log in using email and password or social login via Google.
+
+#### 10. **Forgot Password Screen**
+
+- Allows users to send a recovery email to reset their password.
+
+#### 11. **Profile Screen**
+
+- Displays user information, including:
+  - Name
+  - Favorite games list
+  - User's game list
+
+
 
 ---
 
 ### **Future Expansions**
-   - Screen for user-created game lists.
-   - Game status options: "Playing," "Wanted," and "Completed."
    - User-written reviews for played games.
    - Integration with IGDB API for more accurate game data.
    - Social features, such as sharing lists with friends and user profiles with created lists and played games.
@@ -175,6 +209,9 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### 🏁Sprint 2
 - <a href="https://github.com/fel0psmya/mobile-2024.1-project/tree/main/Screenshots/2nd%20Delivery">To see the images click here!</a>
+
+### 🏁Sprint 3
+- <a href="https://github.com/fel0psmya/mobile-2024.1-project/tree/main/Screenshots/3rd%20Delivery">To see the images click here!</a>
 
 ## 🎈Video demo <a name="Video"></a>
 ### 🏁Sprint 1
